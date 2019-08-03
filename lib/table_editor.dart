@@ -104,16 +104,14 @@ class _RowState extends State<_Row> {
       child: ValueStreamBuilder<int>(
         stream: DocumentBloc.of(context).cols,
         initialValue: 0,
-        builder: (context, cols) {
-          return ListView.separated(
-            controller: _ctrl,
-            itemCount: cols,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-            separatorBuilder: (_, __) =>
-                Container(width: 1, color: Colors.black12),
-          );
-        },
+        builder: (context, cols) => ListView.separated(
+          controller: _ctrl,
+          itemCount: cols,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+          separatorBuilder: (_, __) =>
+              Container(width: 1, color: Colors.black12),
+        ),
       ),
     );
   }
@@ -134,12 +132,10 @@ class _Cell extends StatelessWidget {
     return ValueStreamBuilder<String>(
       stream: DocumentBloc.of(context).getCell(row, col),
       initialValue: '',
-      builder: (context, value) {
-        return SizedBox(
-          width: _cellWidth,
-          child: Text(value),
-        );
-      },
+      builder: (context, value) => SizedBox(
+        width: _cellWidth,
+        child: Text(value),
+      ),
     );
   }
 }
