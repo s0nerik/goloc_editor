@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
+import 'package:goloc_editor/value_stream_builder.dart';
 import 'package:provider/provider.dart';
 
 const double _cellHeight = 56;
@@ -26,29 +27,27 @@ class _TableEditorState extends State<TableEditor> {
   Widget build(BuildContext context) {
     return Provider(
       builder: (context) => DocumentBloc(widget.source),
-      child: Consumer<DocumentBloc>(builder: (context, bloc, _) {
-        // TODO: handle empty document
-        return StreamBuilder<int>(
+      // TODO: handle empty document
+      child: Consumer<DocumentBloc>(
+        builder: (context, bloc, _) => ValueStreamBuilder<int>(
           stream: bloc.rows,
-          initialData: 0,
-          builder: (context, snapshot) {
-            return Column(
-              children: <Widget>[
-                _Row(i: 0, offsetNotifier: _offsetNotifier),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: max(0, snapshot.data - 1),
-                    itemBuilder: (_, i) =>
-                        _Row(i: i + 1, offsetNotifier: _offsetNotifier),
-                    separatorBuilder: (_, __) =>
-                        Container(height: 1, color: Colors.black12),
-                  ),
+          initialValue: 0,
+          builder: (context, rows) => Column(
+            children: <Widget>[
+              _Row(i: 0, offsetNotifier: _offsetNotifier),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: max(0, rows - 1),
+                  itemBuilder: (_, i) =>
+                      _Row(i: i + 1, offsetNotifier: _offsetNotifier),
+                  separatorBuilder: (_, __) =>
+                      Container(height: 1, color: Colors.black12),
                 ),
-              ],
-            );
-          },
-        );
-      }),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -98,13 +97,13 @@ class _RowState extends State<_Row> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: _cellHeight,
-      child: StreamBuilder<int>(
+      child: ValueStreamBuilder<int>(
         stream: DocumentBloc.of(context).cols,
-        initialData: 0,
-        builder: (context, snapshot) {
+        initialValue: 0,
+        builder: (context, cols) {
           return ListView.separated(
             controller: _ctrl,
-            itemCount: snapshot.data,
+            itemCount: cols,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
             separatorBuilder: (_, __) =>
@@ -128,13 +127,13 @@ class _Cell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<String>(
+    return ValueStreamBuilder<String>(
       stream: DocumentBloc.of(context).getCell(row, col),
-      initialData: '',
-      builder: (context, snapshot) {
+      initialValue: '',
+      builder: (context, value) {
         return SizedBox(
           width: _cellWidth,
-          child: Text(snapshot.data),
+          child: Text(value),
         );
       },
     );
