@@ -104,7 +104,7 @@ class _RowState extends State<_Row> {
             controller: _ctrl,
             itemCount: snapshot.data,
             scrollDirection: Axis.horizontal,
-            itemBuilder: (context, j) => Cell(row: widget.i, col: j),
+            itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
           );
         },
       ),
@@ -112,11 +112,11 @@ class _RowState extends State<_Row> {
   }
 }
 
-class Cell extends StatelessWidget {
+class _Cell extends StatelessWidget {
   final int row;
   final int col;
 
-  const Cell({
+  const _Cell({
     Key key,
     @required this.row,
     @required this.col,
