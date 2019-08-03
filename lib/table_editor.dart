@@ -29,22 +29,23 @@ class _TableEditorState extends State<TableEditor> {
       child: Consumer<DocumentBloc>(builder: (context, bloc, _) {
         // TODO: handle empty document
         return StreamBuilder<int>(
-            stream: bloc.rows,
-            initialData: 0,
-            builder: (context, snapshot) {
-              return Column(
-                children: <Widget>[
-                  _Row(i: 0, offsetNotifier: _offsetNotifier),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: max(0, snapshot.data - 1),
-                      itemBuilder: (context, i) =>
-                          _Row(i: i + 1, offsetNotifier: _offsetNotifier),
-                    ),
+          stream: bloc.rows,
+          initialData: 0,
+          builder: (context, snapshot) {
+            return Column(
+              children: <Widget>[
+                _Row(i: 0, offsetNotifier: _offsetNotifier),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: max(0, snapshot.data - 1),
+                    itemBuilder: (context, i) =>
+                        _Row(i: i + 1, offsetNotifier: _offsetNotifier),
                   ),
-                ],
-              );
-            });
+                ),
+              ],
+            );
+          },
+        );
       }),
     );
   }
