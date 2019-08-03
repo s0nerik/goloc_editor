@@ -36,10 +36,12 @@ class _TableEditorState extends State<TableEditor> {
               children: <Widget>[
                 _Row(i: 0, offsetNotifier: _offsetNotifier),
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     itemCount: max(0, snapshot.data - 1),
-                    itemBuilder: (context, i) =>
+                    itemBuilder: (_, i) =>
                         _Row(i: i + 1, offsetNotifier: _offsetNotifier),
+                    separatorBuilder: (_, __) =>
+                        Container(height: 1, color: Colors.black12),
                   ),
                 ),
               ],
@@ -100,11 +102,13 @@ class _RowState extends State<_Row> {
         stream: DocumentBloc.of(context).cols,
         initialData: 0,
         builder: (context, snapshot) {
-          return ListView.builder(
+          return ListView.separated(
             controller: _ctrl,
             itemCount: snapshot.data,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+            separatorBuilder: (_, __) =>
+                Container(width: 1, color: Colors.black12),
           );
         },
       ),
