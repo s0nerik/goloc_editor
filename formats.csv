@@ -1,0 +1,4 @@
+format,flutter,ios
+,s,@
+floatPrecisionOne,.1f,.1f
+floatPrecisionTwo,.2f,.2f

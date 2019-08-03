@@ -23,7 +23,9 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TableEditor(),
+      body: TableEditor(
+        source: 'localizations.csv',
+      ),
     );
   }
 }

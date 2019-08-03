@@ -1,9 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:goloc_editor/document_bloc.dart';
+import 'package:provider/provider.dart';
 
 const double _cellHeight = 56;
 const double _cellWidth = 128;
 
 class TableEditor extends StatefulWidget {
+  final String source;
+
+  const TableEditor({
+    Key key,
+    @required this.source,
+  }) : super(key: key);
+
   @override
   _TableEditorState createState() => _TableEditorState();
 }
@@ -13,10 +24,28 @@ class _TableEditorState extends State<TableEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 500,
-      itemBuilder: (context, i) => _Row(i: i, offsetNotifier: _offsetNotifier),
-      shrinkWrap: true,
+    return Provider(
+      builder: (context) => DocumentBloc(widget.source),
+      child: Consumer<DocumentBloc>(builder: (context, bloc, _) {
+        // TODO: handle empty document
+        return StreamBuilder<int>(
+            stream: bloc.rows,
+            initialData: 0,
+            builder: (context, snapshot) {
+              return Column(
+                children: <Widget>[
+                  _Row(i: 0, offsetNotifier: _offsetNotifier),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: max(0, snapshot.data - 1),
+                      itemBuilder: (context, i) =>
+                          _Row(i: i + 1, offsetNotifier: _offsetNotifier),
+                    ),
+                  ),
+                ],
+              );
+            });
+      }),
     );
   }
 }
@@ -66,15 +95,43 @@ class _RowState extends State<_Row> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: _cellHeight,
-      child: ListView.builder(
-        controller: _ctrl,
-        itemCount: 50,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, j) => SizedBox(
-          width: _cellWidth,
-          child: Text('Cell(${widget.i}, $j)'),
-        ),
+      child: StreamBuilder<int>(
+        stream: DocumentBloc.of(context).cols,
+        initialData: 0,
+        builder: (context, snapshot) {
+          return ListView.builder(
+            controller: _ctrl,
+            itemCount: snapshot.data,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, j) => Cell(row: widget.i, col: j),
+          );
+        },
       ),
+    );
+  }
+}
+
+class Cell extends StatelessWidget {
+  final int row;
+  final int col;
+
+  const Cell({
+    Key key,
+    @required this.row,
+    @required this.col,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<String>(
+      stream: DocumentBloc.of(context).getCell(row, col),
+      initialData: '',
+      builder: (context, snapshot) {
+        return SizedBox(
+          width: _cellWidth,
+          child: Text(snapshot.data),
+        );
+      },
     );
   }
 }
