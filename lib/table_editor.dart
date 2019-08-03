@@ -34,7 +34,10 @@ class _TableEditorState extends State<TableEditor> {
           initialValue: 0,
           builder: (context, rows) => Column(
             children: <Widget>[
-              _Row(i: 0, offsetNotifier: _offsetNotifier),
+              Material(
+                elevation: 4,
+                child: _Row(i: 0, offsetNotifier: _offsetNotifier),
+              ),
               Expanded(
                 child: ListView.separated(
                   itemCount: max(0, rows - 1),
@@ -95,8 +98,9 @@ class _RowState extends State<_Row> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       height: _cellHeight,
+      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
       child: ValueStreamBuilder<int>(
         stream: DocumentBloc.of(context).cols,
         initialValue: 0,
