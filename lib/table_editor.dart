@@ -1,12 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:goloc_editor/bloc.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/value_stream_builder.dart';
 import 'package:provider/provider.dart';
 
 const double _cellHeight = 56;
 const double _cellWidth = 128;
+
+class _TableOffsetNotifier extends ValueNotifier<double> {
+  _TableOffsetNotifier() : super(0);
+}
 
 class TableEditor extends StatefulWidget {
   final String source;
@@ -21,12 +27,13 @@ class TableEditor extends StatefulWidget {
 }
 
 class _TableEditorState extends State<TableEditor> {
-  final _offsetNotifier = ValueNotifier<double>(0);
-
   @override
   Widget build(BuildContext context) {
-    return Provider(
-      builder: (context) => DocumentBloc(widget.source),
+    return MultiProvider(
+      providers: [
+        BlocProvider(builder: (_) => DocumentBloc(widget.source)),
+        ChangeNotifierProvider(builder: (_) => _TableOffsetNotifier()),
+      ],
       // TODO: handle empty document
       child: Consumer<DocumentBloc>(
         builder: (context, bloc, _) => ValueStreamBuilder<int>(
@@ -36,13 +43,12 @@ class _TableEditorState extends State<TableEditor> {
             children: <Widget>[
               Material(
                 elevation: 4,
-                child: _Row(i: 0, offsetNotifier: _offsetNotifier),
+                child: _Row(i: 0),
               ),
               Expanded(
                 child: ListView.separated(
                   itemCount: max(0, rows - 1),
-                  itemBuilder: (_, i) =>
-                      _Row(i: i + 1, offsetNotifier: _offsetNotifier),
+                  itemBuilder: (_, i) => _Row(i: i + 1),
                   separatorBuilder: (_, __) =>
                       Container(height: 1, color: Colors.black12),
                 ),
@@ -57,12 +63,10 @@ class _TableEditorState extends State<TableEditor> {
 
 class _Row extends StatefulWidget {
   final int i;
-  final ValueNotifier<double> offsetNotifier;
 
   const _Row({
     Key key,
     @required this.i,
-    @required this.offsetNotifier,
   }) : super(key: key);
 
   @override
@@ -71,29 +75,31 @@ class _Row extends StatefulWidget {
 
 class _RowState extends State<_Row> {
   final ScrollController _ctrl = ScrollController();
+  _TableOffsetNotifier _offsetNotifier;
 
   @override
   void initState() {
     super.initState();
-    widget.offsetNotifier.addListener(_updateWithOffset);
+    _offsetNotifier = Provider.of<_TableOffsetNotifier>(context, listen: false);
+    _offsetNotifier.addListener(_updateWithOffset);
     _ctrl.addListener(_notifyOffset);
   }
 
   @override
   void dispose() {
-    widget.offsetNotifier.removeListener(_updateWithOffset);
+    _offsetNotifier.removeListener(_updateWithOffset);
     _ctrl.removeListener(_notifyOffset);
     super.dispose();
   }
 
   void _updateWithOffset() {
-    if (_ctrl.offset != widget.offsetNotifier.value) {
-      _ctrl.jumpTo(widget.offsetNotifier.value);
+    if (_ctrl.offset != _offsetNotifier.value) {
+      _ctrl.jumpTo(_offsetNotifier.value);
     }
   }
 
   void _notifyOffset() {
-    widget.offsetNotifier.value = _ctrl.offset;
+    _offsetNotifier.value = _ctrl.offset;
   }
 
   @override
