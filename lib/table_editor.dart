@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:goloc_editor/bloc.dart';
@@ -12,6 +13,35 @@ const double _cellWidth = 128;
 
 class _TableOffsetNotifier extends ValueNotifier<double> {
   _TableOffsetNotifier() : super(0);
+}
+
+class _RowHeight extends ChangeNotifier implements ValueListenable<double> {
+  final double _defaultHeight;
+  final Map<int, double> _cells = {};
+
+  _RowHeight({double initialHeight = _cellHeight})
+      : _defaultHeight = initialHeight;
+
+  @override
+  double get value {
+    final heights = _cells.values;
+    if (heights.isNotEmpty) {
+      return heights.reduce(max);
+    } else {
+      return _defaultHeight;
+    }
+  }
+
+  void setCellHeight(int cell, double height) {
+    _cells[cell] = height;
+    final oldValue = value;
+    if (height != oldValue) {
+      notifyListeners();
+    }
+  }
+
+  static _RowHeight of(BuildContext context) =>
+      Provider.of<_RowHeight>(context);
 }
 
 class TableEditor extends StatefulWidget {
@@ -104,19 +134,24 @@ class _RowState extends State<_Row> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: _cellHeight,
-      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-      child: ValueStreamBuilder<int>(
-        stream: DocumentBloc.of(context).cols,
-        initialValue: 0,
-        builder: (context, cols) => ListView.separated(
-          controller: _ctrl,
-          itemCount: cols,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-          separatorBuilder: (_, __) =>
-              Container(width: 1, color: Colors.black12),
+    return ChangeNotifierProvider(
+      builder: (_) => _RowHeight(),
+      child: Consumer<_RowHeight>(
+        builder: (context, height, _) => Container(
+          height: height.value,
+          color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
+          child: ValueStreamBuilder<int>(
+            stream: DocumentBloc.of(context).cols,
+            initialValue: 0,
+            builder: (context, cols) => ListView.separated(
+              controller: _ctrl,
+              itemCount: cols,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+              separatorBuilder: (_, __) =>
+                  Container(width: 1, color: Colors.black12),
+            ),
+          ),
         ),
       ),
     );
@@ -153,16 +188,48 @@ class _CellState extends State<_Cell> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final style = DefaultTextStyle.of(context).style;
+    const padding = const EdgeInsets.all(8.0);
+    return SizedBox(
       width: _cellWidth,
-      padding: const EdgeInsets.all(8),
       child: TextField(
         controller: _ctrl,
-        decoration: InputDecoration.collapsed(hintText: 'Hello'),
+        expands: true,
+        decoration: InputDecoration(
+          contentPadding: padding,
+          border: InputBorder.none,
+        ),
+        style: style,
         maxLines: null,
-        onChanged: (text) =>
-            DocumentBloc.of(context).setCell(widget.row, widget.col, text),
+        onChanged: (text) {
+          DocumentBloc.of(context).setCell(widget.row, widget.col, text);
+          _RowHeight.of(context).setCellHeight(
+              widget.col, _getTextHeight(context, text, style, padding));
+        },
       ),
     );
+  }
+
+  double _getTextHeight(BuildContext context, String text, TextStyle style,
+      EdgeInsetsGeometry padding) {
+    final width = _cellWidth - padding.horizontal;
+    final constraints = BoxConstraints(
+      maxWidth: width,
+      minHeight: 0.0,
+      minWidth: 0.0,
+    );
+
+    final scale = MediaQuery.of(context).textScaleFactor;
+    RenderParagraph renderParagraph = RenderParagraph(
+      TextSpan(
+        text: text,
+        style: style,
+      ),
+      textDirection: TextDirection.ltr,
+      textScaleFactor: scale,
+    );
+    renderParagraph.layout(constraints);
+    double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
+    return result + padding.vertical;
   }
 }
