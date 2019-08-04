@@ -11,8 +11,8 @@ import 'package:provider/provider.dart';
 const double _cellHeight = 56;
 const double _cellWidth = 128;
 
-class _TableOffsetNotifier extends ValueNotifier<double> {
-  _TableOffsetNotifier() : super(0);
+class _TableOffset extends ValueNotifier<double> {
+  _TableOffset() : super(0);
 }
 
 class _RowHeight extends ChangeNotifier implements ValueListenable<double> {
@@ -62,7 +62,7 @@ class _TableEditorState extends State<TableEditor> {
     return MultiProvider(
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(widget.source)),
-        ChangeNotifierProvider(builder: (_) => _TableOffsetNotifier()),
+        ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
       // TODO: handle empty document
       child: Consumer<DocumentBloc>(
@@ -105,31 +105,31 @@ class _Row extends StatefulWidget {
 
 class _RowState extends State<_Row> {
   final ScrollController _ctrl = ScrollController();
-  _TableOffsetNotifier _offsetNotifier;
+  _TableOffset _tableOffset;
 
   @override
   void initState() {
     super.initState();
-    _offsetNotifier = Provider.of<_TableOffsetNotifier>(context, listen: false);
-    _offsetNotifier.addListener(_updateWithOffset);
+    _tableOffset = Provider.of<_TableOffset>(context, listen: false);
+    _tableOffset.addListener(_updateWithOffset);
     _ctrl.addListener(_notifyOffset);
   }
 
   @override
   void dispose() {
-    _offsetNotifier.removeListener(_updateWithOffset);
+    _tableOffset.removeListener(_updateWithOffset);
     _ctrl.removeListener(_notifyOffset);
     super.dispose();
   }
 
   void _updateWithOffset() {
-    if (_ctrl.offset != _offsetNotifier.value) {
-      _ctrl.jumpTo(_offsetNotifier.value);
+    if (_ctrl.offset != _tableOffset.value) {
+      _ctrl.jumpTo(_tableOffset.value);
     }
   }
 
   void _notifyOffset() {
-    _offsetNotifier.value = _ctrl.offset;
+    _tableOffset.value = _ctrl.offset;
   }
 
   @override
