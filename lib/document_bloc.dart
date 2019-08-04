@@ -11,12 +11,15 @@ class DocumentBloc implements Bloc {
   final String _source;
 
   final BehaviorSubject<List<List<String>>> _data = BehaviorSubject.seeded([]);
-  Stream<int> get rows => _data.map((d) => d.length);
+  Stream<int> get rows => _data.map((d) => d.length).distinct();
   Stream<int> get cols => _data
-      .map((d) => d.firstWhere((_) => true, orElse: () => null)?.length ?? 0);
+      .map((d) => d.firstWhere((_) => true, orElse: () => null)?.length ?? 0)
+      .distinct();
 
-  Stream<String> getCell(int row, col) =>
+  Stream<String> getCell(int row, int col) =>
       _data.map((data) => data[row][col]).distinct();
+
+  String getCurrentCellValue(int row, int col) => _data.value[row][col];
 
   DocumentBloc(this._source) {
     _init();
