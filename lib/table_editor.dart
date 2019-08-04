@@ -132,8 +132,9 @@ class _Cell extends StatelessWidget {
     return ValueStreamBuilder<String>(
       stream: DocumentBloc.of(context).getCell(row, col),
       initialValue: '',
-      builder: (context, value) => SizedBox(
+      builder: (context, value) => Container(
         width: _cellWidth,
+        padding: const EdgeInsets.all(8),
         child: Text(value),
       ),
     );
