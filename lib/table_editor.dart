@@ -178,20 +178,27 @@ class _CellState extends State<_Cell> {
   static const _padding = const EdgeInsets.all(8.0);
 
   _RowHeight _rowHeight;
+  MediaQueryData _mediaQuery;
   TextStyle _style;
 
   @override
   void initState() {
     super.initState();
     _rowHeight = provided<_RowHeight>(context, listen: false);
-    _style = inherited<DefaultTextStyle>(context, listen: false).style;
     _ctrl.text =
         DocumentBloc.of(context).getCurrentCellValue(widget.row, widget.col);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _style = DefaultTextStyle.of(context).style;
+    _mediaQuery = MediaQuery.of(context);
     _updateCellHeight();
   }
 
   void _updateCellHeight() {
-    final height = _getTextHeight(context, _ctrl.text, _style, _padding);
+    final height = _getTextHeight(_mediaQuery, _ctrl.text, _style, _padding);
     scheduleMicrotask(() {
       _rowHeight.setCellHeight(widget.col, height);
     });
@@ -218,7 +225,7 @@ class _CellState extends State<_Cell> {
     );
   }
 
-  double _getTextHeight(BuildContext context, String text, TextStyle style,
+  double _getTextHeight(MediaQueryData mediaQuery, String text, TextStyle style,
       EdgeInsetsGeometry padding) {
     final width = _cellWidth - padding.horizontal;
     final constraints = BoxConstraints(
@@ -227,15 +234,13 @@ class _CellState extends State<_Cell> {
       minWidth: 0.0,
     );
 
-    final scale =
-        inherited<MediaQuery>(context, listen: false).data.textScaleFactor;
     RenderParagraph renderParagraph = RenderParagraph(
       TextSpan(
         text: text,
         style: style,
       ),
       textDirection: TextDirection.ltr,
-      textScaleFactor: scale,
+      textScaleFactor: mediaQuery.textScaleFactor,
     );
     renderParagraph.layout(constraints);
     double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
