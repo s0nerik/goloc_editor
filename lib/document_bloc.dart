@@ -14,10 +14,17 @@ class DocumentBloc {
   Stream<int> get cols => _data
       .map((d) => d.firstWhere((_) => true, orElse: () => null)?.length ?? 0);
 
-  Stream<String> getCell(int row, col) => _data.map((data) => data[row][col]);
+  Stream<String> getCell(int row, col) =>
+      _data.map((data) => data[row][col]).distinct();
 
   DocumentBloc(this._source) {
     _init();
+  }
+
+  void setCell(int row, int col, String value) {
+    final list = _data.value;
+    list[row][col] = value;
+    _data.value = list;
   }
 
   Future<void> _init() async {
@@ -29,5 +36,5 @@ class DocumentBloc {
   }
 
   static DocumentBloc of(BuildContext context) =>
-      Provider.of<DocumentBloc>(context);
+      Provider.of<DocumentBloc>(context, listen: false);
 }

@@ -117,7 +117,7 @@ class _RowState extends State<_Row> {
   }
 }
 
-class _Cell extends StatelessWidget {
+class _Cell extends StatefulWidget {
   final int row;
   final int col;
 
@@ -128,14 +128,34 @@ class _Cell extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _CellState createState() => _CellState();
+}
+
+class _CellState extends State<_Cell> {
+  final _ctrl = TextEditingController(text: '');
+
+  @override
+  void initState() {
+    super.initState();
+    DocumentBloc.of(context)
+        .getCell(widget.row, widget.col)
+        .first
+        .then((value) {
+      _ctrl.text = value;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ValueStreamBuilder<String>(
-      stream: DocumentBloc.of(context).getCell(row, col),
-      initialValue: '',
-      builder: (context, value) => Container(
-        width: _cellWidth,
-        padding: const EdgeInsets.all(8),
-        child: Text(value),
+    return Container(
+      width: _cellWidth,
+      padding: const EdgeInsets.all(8),
+      child: TextField(
+        controller: _ctrl,
+        decoration: InputDecoration.collapsed(hintText: 'Hello'),
+        maxLines: null,
+        onChanged: (text) =>
+            DocumentBloc.of(context).setCell(widget.row, widget.col, text),
       ),
     );
   }
