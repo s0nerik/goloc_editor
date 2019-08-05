@@ -30,9 +30,11 @@ class _ValueStreamBuilderState<T> extends State<ValueStreamBuilder<T>> {
     super.initState();
     _value = widget.initialValue;
     _sub = widget.stream.listen((value) {
-      setState(() {
-        _value = value;
-      });
+      if (value != _value) {
+        setState(() {
+          _value = value;
+        });
+      }
     });
   }
 
