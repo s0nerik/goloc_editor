@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +10,7 @@ import 'package:goloc_editor/widget_util.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;
+const _padding = const EdgeInsets.all(8.0);
 
 class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
@@ -18,6 +18,17 @@ class _TableOffset extends ValueNotifier<double> {
 
 class _RowHeight extends ChangeNotifier implements ValueListenable<double> {
   final Map<int, double> _cells = {};
+
+  _RowHeight({
+    @required List<String> row,
+    @required TextStyle style,
+    @required double textScaleFactor,
+    @required EdgeInsetsGeometry padding,
+  }) {
+    for (int i = 0; i < row.length; i++) {
+      _cells[i] = _getTextHeight(row[i], style, textScaleFactor, padding);
+    }
+  }
 
   @override
   double get value {
@@ -61,27 +72,33 @@ class _TableEditorState extends State<TableEditor> {
         BlocProvider(builder: (_) => DocumentBloc(widget.source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
-      // TODO: handle empty document
       child: Consumer<DocumentBloc>(
         builder: (context, bloc, _) => ValueStreamBuilder<int>(
           stream: bloc.rows,
           initialValue: 0,
-          builder: (context, rows) => Column(
-            children: <Widget>[
-              Material(
-                elevation: 4,
-                child: _Row(i: 0),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: max(0, rows - 1),
-                  itemBuilder: (_, i) => _Row(i: i + 1),
-                  separatorBuilder: (_, __) =>
-                      Container(height: 1, color: Colors.black12),
+          builder: (context, rows) {
+            if (rows == 0) {
+              return Container();
+            }
+            return Column(
+              children: <Widget>[
+                Material(
+                  elevation: 4,
+                  child: _Row(i: 0),
                 ),
-              ),
-            ],
-          ),
+                Expanded(
+                  child: ListView.separated(
+                    cacheExtent: 5000,
+                    addAutomaticKeepAlives: true,
+                    itemCount: max(0, rows - 1),
+                    itemBuilder: (_, i) => _Row(i: i + 1),
+                    separatorBuilder: (_, __) =>
+                        Container(height: 1, color: Colors.black12),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -100,7 +117,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> {
+class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
   final ScrollController _ctrl = ScrollController();
   _TableOffset _tableOffset;
 
@@ -132,7 +149,13 @@ class _RowState extends State<_Row> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      builder: (_) => _RowHeight(),
+      builder: (context) => _RowHeight(
+        row: DocumentBloc.of(context).getCurrentRowValue(widget.i),
+        style: inherited<DefaultTextStyle>(context, listen: false).style,
+        textScaleFactor:
+            inherited<MediaQuery>(context, listen: false).data.textScaleFactor,
+        padding: _padding,
+      ),
       child: Consumer<_RowHeight>(
         builder: (context, height, child) {
           return Container(
@@ -156,6 +179,9 @@ class _RowState extends State<_Row> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _Cell extends StatefulWidget {
@@ -175,8 +201,6 @@ class _Cell extends StatefulWidget {
 class _CellState extends State<_Cell> {
   final _ctrl = TextEditingController();
 
-  static const _padding = const EdgeInsets.all(8.0);
-
   _RowHeight _rowHeight;
   MediaQueryData _mediaQuery;
   TextStyle _style;
@@ -194,14 +218,13 @@ class _CellState extends State<_Cell> {
     super.didChangeDependencies();
     _style = DefaultTextStyle.of(context).style;
     _mediaQuery = MediaQuery.of(context);
-    _updateCellHeight();
+    // _updateCellHeight();
   }
 
   void _updateCellHeight() {
-    final height = _getTextHeight(_mediaQuery, _ctrl.text, _style, _padding);
-    scheduleMicrotask(() {
-      _rowHeight.setCellHeight(widget.col, height);
-    });
+    final height = _getTextHeight(
+        _ctrl.text, _style, _mediaQuery.textScaleFactor, _padding);
+    _rowHeight.setCellHeight(widget.col, height);
   }
 
   @override
@@ -224,26 +247,26 @@ class _CellState extends State<_Cell> {
       ),
     );
   }
+}
 
-  double _getTextHeight(MediaQueryData mediaQuery, String text, TextStyle style,
-      EdgeInsetsGeometry padding) {
-    final width = _cellWidth - padding.horizontal;
-    final constraints = BoxConstraints(
-      maxWidth: width,
-      minHeight: 0.0,
-      minWidth: 0.0,
-    );
+double _getTextHeight(String text, TextStyle style, double textScaleFactor,
+    EdgeInsetsGeometry padding) {
+  final width = _cellWidth - padding.horizontal;
+  final constraints = BoxConstraints(
+    maxWidth: width,
+    minHeight: 0.0,
+    minWidth: 0.0,
+  );
 
-    RenderParagraph renderParagraph = RenderParagraph(
-      TextSpan(
-        text: text,
-        style: style,
-      ),
-      textDirection: TextDirection.ltr,
-      textScaleFactor: mediaQuery.textScaleFactor,
-    );
-    renderParagraph.layout(constraints);
-    double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
-    return result + padding.vertical;
-  }
+  RenderParagraph renderParagraph = RenderParagraph(
+    TextSpan(
+      text: text,
+      style: style,
+    ),
+    textDirection: TextDirection.ltr,
+    textScaleFactor: textScaleFactor,
+  );
+  renderParagraph.layout(constraints);
+  double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
+  return result + padding.vertical;
 }

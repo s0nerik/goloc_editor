@@ -20,6 +20,7 @@ class DocumentBloc implements Bloc {
       _data.map((data) => data[row][col]).distinct();
 
   String getCurrentCellValue(int row, int col) => _data.value[row][col];
+  List<String> getCurrentRowValue(int row) => _data.value[row];
 
   DocumentBloc(this._source) {
     _init();
