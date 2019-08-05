@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:goloc_editor/bloc.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +36,8 @@ class DocumentBloc implements Bloc {
   }
 
   Future<void> _init() async {
-    final csvString = await File(_source).readAsString();
+    // final csvString = await File(_source).readAsString();
+    final csvString = await rootBundle.loadString('assets/localizations.csv');
     final csvList = const CsvToListConverter().convert(csvString);
     final mappedList =
         csvList.map((row) => row.map((col) => col as String).toList()).toList();
