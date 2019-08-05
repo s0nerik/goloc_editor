@@ -92,7 +92,7 @@ class _Row extends StatefulWidget {
 }
 
 class _RowState extends State<_Row> {
-  final ScrollController _ctrl = ScrollController();
+  ScrollController _ctrl;
   _TableOffset _tableOffset;
 
   @override
@@ -100,6 +100,8 @@ class _RowState extends State<_Row> {
     super.initState();
     _tableOffset = Provider.of<_TableOffset>(context, listen: false);
     _tableOffset.addListener(_updateWithOffset);
+    _ctrl = ScrollController(
+        initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
     _ctrl.addListener(_notifyOffset);
   }
 
