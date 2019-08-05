@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:goloc_editor/bloc.dart';
 import 'package:goloc_editor/document_bloc.dart';
+import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/value_stream_builder.dart';
 import 'package:goloc_editor/widget_util.dart';
 import 'package:provider/provider.dart';
@@ -14,42 +15,6 @@ const _padding = const EdgeInsets.all(8.0);
 
 class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
-}
-
-class _RowHeight extends ChangeNotifier implements ValueListenable<double> {
-  final Map<int, double> _cells = {};
-
-  _RowHeight({
-    @required List<String> row,
-    @required TextStyle style,
-    @required double textScaleFactor,
-    @required EdgeInsetsGeometry padding,
-  }) {
-    for (int i = 0; i < row.length; i++) {
-      _cells[i] = _getTextHeight(row[i], style, textScaleFactor, padding);
-    }
-  }
-
-  @override
-  double get value {
-    final heights = _cells.values;
-    if (heights.isNotEmpty) {
-      return heights.reduce(max);
-    } else {
-      return 0;
-    }
-  }
-
-  double getCellHeight(int cell) => _cells[cell];
-
-  void setCellHeight(int cell, double height) {
-    final oldValue = value;
-    _cells[cell] = height;
-    final newValue = value;
-    if (newValue != oldValue) {
-      notifyListeners();
-    }
-  }
 }
 
 class TableEditor extends StatefulWidget {
@@ -80,23 +45,33 @@ class _TableEditorState extends State<TableEditor> {
             if (rows == 0) {
               return Container();
             }
-            return Column(
-              children: <Widget>[
-                Material(
-                  elevation: 4,
-                  child: _Row(i: 0),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    cacheExtent: 5000,
-                    addAutomaticKeepAlives: true,
-                    itemCount: max(0, rows - 1),
-                    itemBuilder: (_, i) => _Row(i: i + 1),
-                    separatorBuilder: (_, __) =>
-                        Container(height: 1, color: Colors.black12),
+            return BlocProvider(
+              builder: (context) => TableSizeBloc(
+                data: DocumentBloc.of(context).data,
+                cellWidth: _cellWidth,
+                style:
+                    inherited<DefaultTextStyle>(context, listen: false).style,
+                textScaleFactor: inherited<MediaQuery>(context, listen: false)
+                    .data
+                    .textScaleFactor,
+                padding: _padding,
+              ),
+              child: Column(
+                children: <Widget>[
+                  Material(
+                    elevation: 4,
+                    child: _Row(i: 0),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: max(0, rows - 1),
+                      itemBuilder: (_, i) => _Row(i: i + 1),
+                      separatorBuilder: (_, __) =>
+                          Container(height: 1, color: Colors.black12),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -117,7 +92,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
+class _RowState extends State<_Row> {
   final ScrollController _ctrl = ScrollController();
   _TableOffset _tableOffset;
 
@@ -148,22 +123,12 @@ class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      builder: (context) => _RowHeight(
-        row: DocumentBloc.of(context).getCurrentRowValue(widget.i),
-        style: inherited<DefaultTextStyle>(context, listen: false).style,
-        textScaleFactor:
-            inherited<MediaQuery>(context, listen: false).data.textScaleFactor,
-        padding: _padding,
-      ),
-      child: Consumer<_RowHeight>(
-        builder: (context, height, child) {
-          return Container(
-            height: height.value,
-            color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-            child: child,
-          );
-        },
+    return ValueStreamBuilder<double>(
+      stream: TableSizeBloc.of(context).getRowHeight(widget.i),
+      initialValue: TableSizeBloc.of(context).getCurrentRowHeight(widget.i),
+      builder: (context, height) => Container(
+        height: height,
+        color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
         child: ValueStreamBuilder<int>(
           stream: DocumentBloc.of(context).cols,
           initialValue: 0,
@@ -179,9 +144,6 @@ class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }
 
 class _Cell extends StatefulWidget {
@@ -201,30 +163,11 @@ class _Cell extends StatefulWidget {
 class _CellState extends State<_Cell> {
   final _ctrl = TextEditingController();
 
-  _RowHeight _rowHeight;
-  MediaQueryData _mediaQuery;
-  TextStyle _style;
-
   @override
   void initState() {
     super.initState();
-    _rowHeight = provided<_RowHeight>(context, listen: false);
     _ctrl.text =
         DocumentBloc.of(context).getCurrentCellValue(widget.row, widget.col);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _style = DefaultTextStyle.of(context).style;
-    _mediaQuery = MediaQuery.of(context);
-    // _updateCellHeight();
-  }
-
-  void _updateCellHeight() {
-    final height = _getTextHeight(
-        _ctrl.text, _style, _mediaQuery.textScaleFactor, _padding);
-    _rowHeight.setCellHeight(widget.col, height);
   }
 
   @override
@@ -238,35 +181,14 @@ class _CellState extends State<_Cell> {
           contentPadding: _padding,
           border: InputBorder.none,
         ),
-        style: _style,
+        style: DefaultTextStyle.of(context).style,
         maxLines: null,
         onChanged: (text) {
           DocumentBloc.of(context).setCell(widget.row, widget.col, text);
-          _updateCellHeight();
+          TableSizeBloc.of(context)
+              .notifyCellTextChanged(widget.row, widget.col, text);
         },
       ),
     );
   }
-}
-
-double _getTextHeight(String text, TextStyle style, double textScaleFactor,
-    EdgeInsetsGeometry padding) {
-  final width = _cellWidth - padding.horizontal;
-  final constraints = BoxConstraints(
-    maxWidth: width,
-    minHeight: 0.0,
-    minWidth: 0.0,
-  );
-
-  RenderParagraph renderParagraph = RenderParagraph(
-    TextSpan(
-      text: text,
-      style: style,
-    ),
-    textDirection: TextDirection.ltr,
-    textScaleFactor: textScaleFactor,
-  );
-  renderParagraph.layout(constraints);
-  double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
-  return result + padding.vertical;
 }
