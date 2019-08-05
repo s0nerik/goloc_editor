@@ -36,15 +36,12 @@ class TableSizeBloc implements Bloc {
     @required this.padding,
     @required this.cellWidth,
   }) {
-    print('TableSizeBloc: start');
     _sizes.value = data.map((row) {
-      print('TableSizeBloc: map row');
       return row
           .map((cellText) => _getTextHeight(
               cellText, style, textScaleFactor, padding, cellWidth))
           .toList();
     }).toList();
-    print('TableSizeBloc: done');
   }
 
   void notifyCellTextChanged(int row, int col, String text) {

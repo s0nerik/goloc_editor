@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 typedef ValueStreamWidgetBuilder<T> = Widget Function(
     BuildContext context, T value);
 
-class ValueStreamBuilder<T> extends StatelessWidget {
+class ValueStreamBuilder<T> extends StatefulWidget {
   final Stream<T> stream;
   final T initialValue;
   final ValueStreamWidgetBuilder<T> builder;
@@ -18,11 +18,32 @@ class ValueStreamBuilder<T> extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ValueStreamBuilderState<T> createState() => _ValueStreamBuilderState<T>();
+}
+
+class _ValueStreamBuilderState<T> extends State<ValueStreamBuilder<T>> {
+  T _value;
+  StreamSubscription _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+    _sub = widget.stream.listen((value) {
+      setState(() {
+        _value = value;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: stream,
-      initialData: initialValue,
-      builder: (context, snapshot) => builder(context, snapshot.data),
-    );
+    return widget.builder(context, _value);
   }
 }

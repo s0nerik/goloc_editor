@@ -66,8 +66,7 @@ class _TableEditorState extends State<TableEditor> {
                     child: ListView.separated(
                       itemCount: max(0, rows - 1),
                       itemBuilder: (_, i) => _Row(i: i + 1),
-                      separatorBuilder: (_, __) =>
-                          Container(height: 1, color: Colors.black12),
+                      separatorBuilder: (_, __) => Divider(height: 1),
                     ),
                   ),
                 ],
@@ -137,8 +136,7 @@ class _RowState extends State<_Row> {
             itemCount: cols,
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-            separatorBuilder: (_, __) =>
-                Container(width: 1, color: Colors.black12),
+            separatorBuilder: (_, __) => const VerticalDivider(width: 1),
           ),
         ),
       ),
