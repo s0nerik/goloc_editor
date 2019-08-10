@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +6,27 @@ import 'package:flutter/widgets.dart';
 import 'package:goloc_editor/bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+
+@immutable
+class DocumentSize {
+  final int rows;
+  final int cols;
+
+  const DocumentSize(this.rows, this.cols);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DocumentSize &&
+          runtimeType == other.runtimeType &&
+          rows == other.rows &&
+          cols == other.cols;
+
+  @override
+  int get hashCode => rows.hashCode ^ cols.hashCode;
+
+  static const empty = DocumentSize(0, 0);
+}
 
 class DocumentBloc implements Bloc {
   final String _source;
@@ -18,6 +38,14 @@ class DocumentBloc implements Bloc {
   Stream<int> get cols => _data
       .map((d) => d.firstWhere((_) => true, orElse: () => null)?.length ?? 0)
       .distinct();
+
+  Stream<DocumentSize> get size => _data.map((data) {
+        if (data.isNotEmpty) {
+          return DocumentSize(data.length, data[0].length);
+        } else {
+          return DocumentSize.empty;
+        }
+      }).distinct();
 
   Stream<String> getCell(int row, int col) =>
       _data.map((data) => data[row][col]).distinct();

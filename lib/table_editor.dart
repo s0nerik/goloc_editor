@@ -38,11 +38,11 @@ class _TableEditorState extends State<TableEditor> {
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
       child: Consumer<DocumentBloc>(
-        builder: (context, bloc, _) => ValueStreamBuilder<int>(
-          stream: bloc.rows,
-          initialValue: 0,
-          builder: (context, rows) {
-            if (rows == 0) {
+        builder: (context, bloc, _) => ValueStreamBuilder<DocumentSize>(
+          stream: bloc.size,
+          initialValue: DocumentSize.empty,
+          builder: (context, size) {
+            if (size.rows == 0) {
               return Container();
             }
             return BlocProvider(
@@ -64,7 +64,7 @@ class _TableEditorState extends State<TableEditor> {
                   ),
                   Expanded(
                     child: ListView.separated(
-                      itemCount: max(0, rows - 1),
+                      itemCount: max(0, size.rows - 1),
                       itemBuilder: (_, i) => _Row(i: i + 1),
                       separatorBuilder: (_, __) => Divider(height: 1),
                     ),
