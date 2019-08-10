@@ -56,20 +56,17 @@ class _TableEditorState extends State<TableEditor> {
                     .textScaleFactor,
                 padding: _padding,
               ),
-              child: Column(
-                children: <Widget>[
-                  Material(
-                    elevation: 4,
-                    child: _Row(i: 0),
-                  ),
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: max(0, size.rows - 1),
-                      itemBuilder: (_, i) => _Row(i: i + 1),
-                      separatorBuilder: (_, __) => Divider(height: 1),
-                    ),
-                  ),
-                ],
+              child: Scaffold(
+                appBar: AppBar(
+                  titleSpacing: 0,
+                  title: _Row(i: 0),
+                ),
+                body: ListView.separated(
+                  addAutomaticKeepAlives: true,
+                  itemCount: max(0, size.rows - 1),
+                  itemBuilder: (_, i) => _Row(i: i + 1),
+                  separatorBuilder: (_, __) => Divider(height: 1),
+                ),
               ),
             );
           },
@@ -91,7 +88,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> {
+class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
   ScrollController _ctrl;
   _TableOffset _tableOffset;
 
@@ -124,6 +121,7 @@ class _RowState extends State<_Row> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ValueStreamBuilder<double>(
       stream: TableSizeBloc.of(context).getRowHeight(widget.i),
       initialValue: TableSizeBloc.of(context).getCurrentRowHeight(widget.i),
@@ -144,6 +142,9 @@ class _RowState extends State<_Row> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _Cell extends StatefulWidget {
