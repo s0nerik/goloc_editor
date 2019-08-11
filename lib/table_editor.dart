@@ -57,15 +57,29 @@ class _TableEditorState extends State<TableEditor> {
                 padding: _padding,
               ),
               child: Scaffold(
-                appBar: AppBar(
-                  titleSpacing: 0,
-                  title: _Row(i: 0),
+                appBar: PreferredSize(
+                  preferredSize: Size.fromHeight(0),
+                  child: Container(
+                    color: Colors.black12,
+                    child: SafeArea(child: SizedBox.shrink()),
+                  ),
                 ),
-                body: ListView.separated(
-                  addAutomaticKeepAlives: true,
-                  itemCount: max(0, size.rows - 1),
-                  itemBuilder: (_, i) => _Row(i: i + 1),
-                  separatorBuilder: (_, __) => Divider(height: 1),
+                body: Column(
+                  children: <Widget>[
+                    Material(
+                      color: Theme.of(context).appBarTheme.color,
+                      elevation: 4,
+                      child: _Row(i: 0),
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        addAutomaticKeepAlives: true,
+                        itemCount: max(0, size.rows - 1),
+                        itemBuilder: (_, i) => _Row(i: i + 1),
+                        separatorBuilder: (_, __) => Divider(height: 1),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
