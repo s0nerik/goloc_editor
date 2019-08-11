@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:goloc_editor/bloc.dart';
+import 'package:goloc_editor/util/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/subjects.dart';

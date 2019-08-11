@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:goloc_editor/bloc.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
-import 'package:goloc_editor/value_stream_builder.dart';
-import 'package:goloc_editor/widget_util.dart';
+import 'package:goloc_editor/util/bloc.dart';
+import 'package:goloc_editor/util/widget_util.dart';
+import 'package:goloc_editor/widget/value_stream_builder.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;

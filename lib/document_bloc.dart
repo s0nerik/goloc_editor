@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:csv/csv.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:goloc_editor/bloc.dart';
+import 'package:goloc_editor/util/bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
