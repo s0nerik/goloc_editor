@@ -73,10 +73,9 @@ class _TableEditorState extends State<TableEditor> {
                     ),
                     Expanded(
                       child: ListView.separated(
-                        addAutomaticKeepAlives: true,
                         itemCount: max(0, size.rows - 1),
                         itemBuilder: (_, i) => _Row(i: i + 1),
-                        separatorBuilder: (_, __) => Divider(height: 1),
+                        separatorBuilder: (_, __) => const Divider(height: 1),
                       ),
                     ),
                   ],
@@ -102,7 +101,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
+class _RowState extends State<_Row> {
   ScrollController _ctrl;
   _TableOffset _tableOffset;
 
@@ -135,7 +134,6 @@ class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ValueStreamBuilder<double>(
       stream: TableSizeBloc.of(context).getRowHeight(widget.i),
       initialValue: TableSizeBloc.of(context).getCurrentRowHeight(widget.i),
@@ -156,9 +154,6 @@ class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => false;
 }
 
 class _Cell extends StatefulWidget {
@@ -192,7 +187,7 @@ class _CellState extends State<_Cell> {
       child: TextField(
         controller: _ctrl,
         expands: true,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           contentPadding: _padding,
           border: InputBorder.none,
         ),
