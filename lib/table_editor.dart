@@ -158,7 +158,7 @@ class _RowState extends State<_Row> with AutomaticKeepAliveClientMixin {
   }
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => false;
 }
 
 class _Cell extends StatefulWidget {

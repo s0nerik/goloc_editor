@@ -34,24 +34,14 @@ class DocumentBloc implements Bloc {
   final BehaviorSubject<List<List<String>>> _data = BehaviorSubject.seeded([]);
   List<List<String>> get data => _data.value;
 
-  Stream<int> get rows => _data.map((d) => d.length).distinct();
-  Stream<int> get cols => _data
-      .map((d) => d.firstWhere((_) => true, orElse: () => null)?.length ?? 0)
-      .distinct();
-
-  Stream<DocumentSize> get size => _data.map((data) {
-        if (data.isNotEmpty) {
-          return DocumentSize(data.length, data[0].length);
-        } else {
-          return DocumentSize.empty;
-        }
-      }).distinct();
+  Stream<DocumentSize> get size => _data.map(_size).distinct();
+  Stream<int> get rows => size.map((s) => s.rows).distinct();
+  Stream<int> get cols => size.map((s) => s.cols).distinct();
 
   Stream<String> getCell(int row, int col) =>
-      _data.map((data) => data[row][col]).distinct();
+      _data.map((data) => _cell(data, row, col)).distinct();
 
-  String getCurrentCellValue(int row, int col) => _data.value[row][col];
-  List<String> getCurrentRowValue(int row) => _data.value[row];
+  String getCurrentCellValue(int row, int col) => _cell(data, row, col);
 
   DocumentBloc(this._source) {
     _init();
@@ -79,4 +69,37 @@ class DocumentBloc implements Bloc {
 
   static DocumentBloc of(BuildContext context) =>
       Provider.of<DocumentBloc>(context, listen: false);
+}
+
+DocumentSize _size(List<List<String>> data) {
+  if (data.isNotEmpty) {
+    int rowLength = data[0].length;
+    if (_sectionNameColumnIndex(data) >= 0) {
+      rowLength -= 1;
+    }
+    return DocumentSize(data.length, rowLength);
+  } else {
+    return DocumentSize.empty;
+  }
+}
+
+String _cell(List<List<String>> data, int row, int col) {
+  final excludedIndex = _sectionNameColumnIndex(data);
+  if (excludedIndex < 0) {
+    return data[row][col];
+  }
+  if (col < excludedIndex) {
+    return data[row][col];
+  } else {
+    return data[row][col + 1];
+  }
+}
+
+int _sectionNameColumnIndex(List<List<String>> data) {
+  final firstRow = data?.firstWhere((_) => true, orElse: () => null);
+  if (firstRow == null) {
+    return -1;
+  }
+  return -1; // TODO: section handling
+  return firstRow.indexWhere((e) => e.contains('comment'));
 }
