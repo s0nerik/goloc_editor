@@ -2,7 +2,7 @@ name: goloc_editor
 description: goloc editor
 
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.3.0 <3.0.0'
   # The example interacts with build scripts on the Flutter side that are not
   # yet stable, so it requires a very recent version of Flutter.
   # This version will increase regularly as the build scripts change.
@@ -14,6 +14,8 @@ dependencies:
   csv: ^4.0.3
   provider: ^3.0.0+1
   rxdart: ^0.22.1
+  flutter_sticky_header: ^0.3.4
+  collection: any
 
 dev_dependencies:
   flutter_test:
