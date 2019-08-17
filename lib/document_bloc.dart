@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
@@ -12,8 +13,9 @@ import 'package:rxdart/rxdart.dart';
 class DocumentSize {
   final int rows;
   final int cols;
+  final int sections;
 
-  const DocumentSize(this.rows, this.cols);
+  const DocumentSize(this.rows, this.cols, this.sections);
 
   @override
   bool operator ==(Object other) =>
@@ -21,12 +23,13 @@ class DocumentSize {
       other is DocumentSize &&
           runtimeType == other.runtimeType &&
           rows == other.rows &&
-          cols == other.cols;
+          cols == other.cols &&
+          sections == other.sections;
 
   @override
-  int get hashCode => rows.hashCode ^ cols.hashCode;
+  int get hashCode => rows.hashCode ^ cols.hashCode ^ sections.hashCode;
 
-  static const empty = DocumentSize(0, 0);
+  static const empty = DocumentSize(0, 0, 0);
 }
 
 @immutable
@@ -55,12 +58,11 @@ class DocumentBloc implements Bloc {
 
   final BehaviorSubject<List<List<String>>> _data = BehaviorSubject.seeded([]);
   List<List<String>> get data => _data.value;
-
-  Stream<List<int>> get sectionIndices => _data.map(_sectionIndices);
   Stream<List<Section>> get sections => _data.map(_sections);
 
-  Stream<DocumentSize> get size => _data.map(_size).distinct();
-  Stream<int> get rows => size.map((s) => s.rows).distinct();
+  Stream<DocumentSize> get size =>
+      Observable.zip2(_data, sections, _size).distinct();
+  Stream<int> get sectionsAmount => size.map((s) => s.sections).distinct();
   Stream<int> get cols => size.map((s) => s.cols).distinct();
 
   Stream<String> getCell(int row, int col) =>
@@ -99,16 +101,26 @@ class DocumentBloc implements Bloc {
       Provider.of<DocumentBloc>(context, listen: false);
 }
 
-DocumentSize _size(List<List<String>> data) {
-  if (data.isNotEmpty) {
-    int rowLength = data[0].length;
-    if (_sectionNameColumnIndex(data) >= 0) {
-      rowLength -= 1;
-    }
-    return DocumentSize(data.length, rowLength);
-  } else {
+DocumentSize _size(List<List<String>> data, List<Section> sections) {
+  if (data.isEmpty) {
     return DocumentSize.empty;
   }
+
+  if (sections.isEmpty) {
+    return DocumentSize.empty;
+  }
+
+  final rows = data.length;
+  int cols = 0;
+  for (final row in data) {
+    cols = max(cols, row.length);
+  }
+
+  if (sections.length > 1 || sections[0].title.isNotEmpty) {
+    cols -= 1;
+  }
+
+  return DocumentSize(rows, cols, sections.length);
 }
 
 String _cell(List<List<String>> data, int row, int col) {
@@ -148,26 +160,12 @@ List<Section> _sections(List<List<String>> data) {
   return result;
 }
 
-int _sectionCount(List<List<String>> data) =>
-    data.where((row) => _sectionNameColumnIndexByRow(row) >= 0).length;
-
-List<int> _sectionIndices(List<List<String>> data) {
-  final result = <int>[];
-  for (int i = 0; i < data.length; i++) {
-    if (_sectionNameColumnIndexByRow(data[i]) >= 0) {
-      result.add(i);
-    }
-  }
-  return result;
-}
-
 int _sectionNameColumnIndex(List<List<String>> data) {
-  final firstRow = data?.firstWhere((_) => true, orElse: () => null);
-  if (firstRow == null) {
+  if (data.isEmpty) {
     return -1;
   }
 //  return -1; // TODO: section handling
-  return _sectionNameColumnIndexByRow(firstRow);
+  return _sectionNameColumnIndexByRow(data[0]);
 }
 
 int _sectionNameColumnIndexByRow(List<String> row) =>
