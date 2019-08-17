@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -34,23 +33,24 @@ class DocumentSize {
 
 @immutable
 class Section {
+  final int rowOffset;
   final String title;
   final List<List<String>> data;
 
-  const Section(this.title, this.data);
+  const Section(this.rowOffset, this.title, this.data);
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Section &&
+          rowOffset == other.rowOffset &&
           runtimeType == other.runtimeType &&
-          title == other.title &&
-          const DeepCollectionEquality().equals(data, other.data);
+          title == other.title;
 
   @override
-  int get hashCode => title.hashCode ^ data.hashCode;
+  int get hashCode => rowOffset.hashCode ^ title.hashCode ^ data.hashCode;
 
-  static const Section empty = Section('', []);
+  static const Section empty = Section(0, '', []);
 }
 
 class DocumentBloc implements Bloc {
@@ -145,18 +145,22 @@ List<Section> _sections(List<List<String>> data) {
 
   String lastSectionTitle = '';
   List<List<String>> lastSectionData = [];
+  int lastRowOffset = 1;
+  int rowOffset = 0;
   data.skip(1).forEach((row) {
+    rowOffset++;
     final sectionTitle = row[sectionTitleColIndex];
     if (sectionTitle?.isNotEmpty == true) {
       if (lastSectionTitle?.isNotEmpty == true) {
-        result.add(Section(lastSectionTitle, lastSectionData));
+        result.add(Section(lastRowOffset, lastSectionTitle, lastSectionData));
       }
+      lastRowOffset = rowOffset;
       lastSectionTitle = sectionTitle;
       lastSectionData = [];
     }
     lastSectionData.add(row);
   });
-  result.add(Section(lastSectionTitle, lastSectionData));
+  result.add(Section(lastRowOffset, lastSectionTitle, lastSectionData));
   return result;
 }
 

@@ -15,7 +15,6 @@ dependencies:
   provider: ^3.0.0+1
   rxdart: ^0.22.1
   flutter_sticky_header: ^0.3.4
-  collection: any
 
 dev_dependencies:
   flutter_test:
