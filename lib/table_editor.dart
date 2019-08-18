@@ -72,10 +72,18 @@ class _EditorContent extends StatelessWidget {
                 child: _Row(i: 0),
               ),
               Expanded(
-                child: CustomScrollView(
-                  slivers: document.sections
-                      .map((s) => _Section(section: s))
-                      .toList(),
+                child: Overlay(
+                  initialEntries: [
+                    OverlayEntry(
+                      maintainState: true,
+                      opaque: true,
+                      builder: (context) => CustomScrollView(
+                        slivers: document.sections
+                            .map((s) => _Section(section: s))
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -196,23 +204,58 @@ class _RowState extends State<_Row> {
         child: ValueStreamBuilder<int>(
           stream: DocumentBloc.of(context).cols,
           initialValue: 0,
-          builder: (context, cols) => Row(
-            children: <Widget>[
-              _RowDragHandle(row: widget.i),
-              const VerticalDivider(width: 1),
-              Expanded(
-                child: ListView.separated(
-                  controller: _ctrl,
-                  itemCount: cols,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-                  separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+          builder: (context, cols) {
+            final content = _content(context, cols);
+            return DragTarget<int>(
+              onWillAccept: (row) {
+                print('onWillAccept: $row');
+                return widget.i != row;
+              },
+              onAccept: (row) {
+                print('onAccept: $row');
+              },
+              builder: (_, __, ___) => LongPressDraggable<int>(
+                data: widget.i,
+                axis: Axis.vertical,
+                childWhenDragging: DecoratedBox(
+                  decoration: BoxDecoration(color: Colors.blue.withAlpha(127)),
+                  child: content,
                 ),
+                maxSimultaneousDrags: 1,
+                feedback: Material(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: height,
+                      maxWidth: MediaQuery.of(context).size.width,
+                    ),
+                    child: content,
+                  ),
+                  elevation: 4.0,
+                ),
+                child: content,
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _content(BuildContext context, int cols) {
+    return Row(
+      children: <Widget>[
+        _RowDragHandle(row: widget.i),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: ListView.separated(
+            controller: _ctrl,
+            itemCount: cols,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+            separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+          ),
+        ),
+      ],
     );
   }
 }
