@@ -16,7 +16,7 @@ class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
 }
 
-class TableEditor extends StatefulWidget {
+class TableEditor extends StatelessWidget {
   final String source;
 
   const TableEditor({
@@ -25,15 +25,10 @@ class TableEditor extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _TableEditorState createState() => _TableEditorState();
-}
-
-class _TableEditorState extends State<TableEditor> {
-  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        BlocProvider(builder: (_) => DocumentBloc(widget.source)),
+        BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
       child: _EditorContent(),
