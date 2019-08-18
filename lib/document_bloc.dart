@@ -66,8 +66,9 @@ class Document {
         lastSectionRowOffset = rowOffset;
         lastSectionTitle = sectionTitle;
         lastSectionLength = 0;
+      } else {
+        lastSectionLength++;
       }
-      lastSectionLength++;
     });
     if (lastSectionTitle?.isNotEmpty == true) {
       result.add(
@@ -75,6 +76,8 @@ class Document {
     }
     return result;
   }
+
+  String getHeader(int row) => _data[row][_sectionNameColumnIndex];
 
   String getCell(int row, int col) =>
       _data[row][_getRealColumnIndex(col, _sectionNameColumnIndex)];
@@ -120,8 +123,16 @@ class DocumentBloc implements Bloc {
   String getCurrentCellValue(int row, int col) =>
       _document.value.getCell(row, col);
 
+  String getCurrentHeaderValue(int row) => _document.value.getHeader(row);
+
   DocumentBloc(this._source) {
     _init();
+  }
+
+  void setHeader(int row, String value) {
+    final document = _document.value;
+    document._setCell(row, document._sectionNameColumnIndex, value);
+    _document.value = document;
   }
 
   void setCell(int row, int col, String value) {

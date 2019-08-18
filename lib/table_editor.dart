@@ -1,8 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
@@ -71,10 +70,10 @@ class _TableEditorState extends State<TableEditor> {
                       child: _Row(i: 0),
                     ),
                     Expanded(
-                      child: ListView.separated(
-                        itemCount: max(0, document.rows - 1),
-                        itemBuilder: (_, i) => _Row(i: i + 1),
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                      child: CustomScrollView(
+                        slivers: document.sections
+                            .map((s) => _Section(section: s))
+                            .toList(),
                       ),
                     ),
                   ],
@@ -82,6 +81,62 @@ class _TableEditorState extends State<TableEditor> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _Section extends StatefulWidget {
+  final Section section;
+
+  const _Section({
+    Key key,
+    @required this.section,
+  }) : super(key: key);
+
+  @override
+  __SectionState createState() => __SectionState();
+}
+
+class __SectionState extends State<_Section> {
+  TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final text =
+        DocumentBloc.of(context).getCurrentHeaderValue(widget.section.row);
+    _ctrl = TextEditingController(text: text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverStickyHeader(
+      header: Material(
+        color: Colors.white,
+        elevation: 4,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          alignment: Alignment.centerLeft,
+          child: TextField(
+            controller: _ctrl,
+            decoration: const InputDecoration(
+              contentPadding: _padding,
+              border: InputBorder.none,
+            ),
+            style: DefaultTextStyle.of(context).style,
+            maxLines: null,
+            onChanged: (text) {
+              DocumentBloc.of(context).setHeader(widget.section.row, text);
+            },
+          ),
+        ),
+      ),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, i) => _Row(i: widget.section.row + i + 1),
+          childCount: widget.section.length,
         ),
       ),
     );

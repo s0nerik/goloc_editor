@@ -47,7 +47,7 @@ packages:
       name: flutter_sticky_header
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.4"
+    version: "0.4.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -165,4 +165,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.3.0 <3.0.0"
-  flutter: ">=1.5.9-pre.270"
+  flutter: ">=1.5.9-pre.270 <2.0.0"
