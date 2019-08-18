@@ -79,6 +79,10 @@ class Document {
 
   String getHeader(int row) => _data[row][_sectionNameColumnIndex];
 
+  void _setHeader(int row, String value) {
+    _data[row][_sectionNameColumnIndex] = value;
+  }
+
   String getCell(int row, int col) =>
       _data[row][_getRealColumnIndex(col, _sectionNameColumnIndex)];
 
@@ -131,7 +135,7 @@ class DocumentBloc implements Bloc {
 
   void setHeader(int row, String value) {
     final document = _document.value;
-    document._setCell(row, document._sectionNameColumnIndex, value);
+    document._setHeader(row, value);
     _document.value = document;
   }
 
