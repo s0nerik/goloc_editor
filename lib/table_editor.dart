@@ -36,53 +36,58 @@ class _TableEditorState extends State<TableEditor> {
         BlocProvider(builder: (_) => DocumentBloc(widget.source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
-      child: Consumer<DocumentBloc>(
-        builder: (context, bloc, _) => ValueObservableBuilder<Document>(
-          stream: bloc.document,
-          builder: (context, document) {
-            if (document.rows == 0) {
-              return Container();
-            }
-            return BlocProvider(
-              builder: (context) => TableSizeBloc(
-                data: document.data,
-                cellWidth: _cellWidth,
-                style:
-                    inherited<DefaultTextStyle>(context, listen: false).style,
-                textScaleFactor: inherited<MediaQuery>(context, listen: false)
-                    .data
-                    .textScaleFactor,
-                padding: _padding,
+      child: _EditorContent(),
+    );
+  }
+}
+
+class _EditorContent extends StatelessWidget {
+  const _EditorContent({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleFutureBuilder<Document>(
+      future: DocumentBloc.of(context).document.firstWhere((d) => d.rows > 0),
+      builder: (document) {
+        return BlocProvider(
+          builder: (context) => TableSizeBloc(
+            data: document.data,
+            cellWidth: _cellWidth,
+            style: inherited<DefaultTextStyle>(context, listen: false).style,
+            textScaleFactor: inherited<MediaQuery>(context, listen: false)
+                .data
+                .textScaleFactor,
+            padding: _padding,
+          ),
+          child: Scaffold(
+            appBar: PreferredSize(
+              preferredSize: Size.fromHeight(0),
+              child: Container(
+                color: Colors.black12,
+                child: SafeArea(child: SizedBox.shrink()),
               ),
-              child: Scaffold(
-                appBar: PreferredSize(
-                  preferredSize: Size.fromHeight(0),
-                  child: Container(
-                    color: Colors.black12,
-                    child: SafeArea(child: SizedBox.shrink()),
+            ),
+            body: Column(
+              children: <Widget>[
+                Material(
+                  color: Theme.of(context).appBarTheme.color,
+                  elevation: 4,
+                  child: _Row(i: 0),
+                ),
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: document.sections
+                        .map((s) => _Section(section: s))
+                        .toList(),
                   ),
                 ),
-                body: Column(
-                  children: <Widget>[
-                    Material(
-                      color: Theme.of(context).appBarTheme.color,
-                      elevation: 4,
-                      child: _Row(i: 0),
-                    ),
-                    Expanded(
-                      child: CustomScrollView(
-                        slivers: document.sections
-                            .map((s) => _Section(section: s))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
