@@ -10,6 +10,7 @@ import 'package:goloc_editor/widget/async.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;
+const double _rowIndicatorWidth = 32;
 const _padding = const EdgeInsets.all(8.0);
 
 class _TableOffset extends ValueNotifier<double> {
@@ -99,20 +100,36 @@ class _Section extends StatelessWidget {
       header: Material(
         color: Colors.blueGrey,
         elevation: 4,
-        child: TextField(
-          controller: TextEditingController(
-            text: DocumentBloc.of(context).getCurrentHeaderValue(section.row),
-          ),
-          decoration: const InputDecoration(
-            contentPadding: _padding,
-            border: InputBorder.none,
-          ),
-          style:
-              DefaultTextStyle.of(context).style.copyWith(color: Colors.white),
-          maxLines: null,
-          onChanged: (text) {
-            DocumentBloc.of(context).setHeader(section.row, text);
-          },
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: _rowIndicatorWidth,
+              child: const Icon(
+                Icons.drag_handle,
+                size: 16,
+                color: Colors.white,
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: TextEditingController(
+                  text: DocumentBloc.of(context)
+                      .getCurrentHeaderValue(section.row),
+                ),
+                decoration: const InputDecoration(
+                  contentPadding: _padding,
+                  border: InputBorder.none,
+                ),
+                style: DefaultTextStyle.of(context)
+                    .style
+                    .copyWith(color: Colors.white),
+                maxLines: null,
+                onChanged: (text) {
+                  DocumentBloc.of(context).setHeader(section.row, text);
+                },
+              ),
+            ),
+          ],
         ),
       ),
       sliver: SliverList(
@@ -181,13 +198,37 @@ class _RowState extends State<_Row> {
           initialValue: 0,
           builder: (context, cols) => ListView.separated(
             controller: _ctrl,
-            itemCount: cols,
+            itemCount: cols + 1,
             scrollDirection: Axis.horizontal,
-            itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+            itemBuilder: (context, j) => j == 0
+                ? _RowDragHandle(row: widget.i)
+                : _Cell(row: widget.i, col: j - 1),
             separatorBuilder: (_, __) => const VerticalDivider(width: 1),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RowDragHandle extends StatelessWidget {
+  final int row;
+
+  const _RowDragHandle({
+    Key key,
+    @required this.row,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (row == 0) {
+      return const SizedBox(width: _rowIndicatorWidth);
+    }
+    return Container(
+      width: _rowIndicatorWidth,
+      alignment: Alignment.topCenter,
+      padding: _padding,
+      child: Text('•', style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }
