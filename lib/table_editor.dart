@@ -196,14 +196,20 @@ class _RowState extends State<_Row> {
         child: ValueStreamBuilder<int>(
           stream: DocumentBloc.of(context).cols,
           initialValue: 0,
-          builder: (context, cols) => ListView.separated(
-            controller: _ctrl,
-            itemCount: cols + 1,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, j) => j == 0
-                ? _RowDragHandle(row: widget.i)
-                : _Cell(row: widget.i, col: j - 1),
-            separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+          builder: (context, cols) => Row(
+            children: <Widget>[
+              _RowDragHandle(row: widget.i),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: ListView.separated(
+                  controller: _ctrl,
+                  itemCount: cols,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+                  separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+                ),
+              ),
+            ],
           ),
         ),
       ),
