@@ -96,10 +96,10 @@ class _Section extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  __SectionState createState() => __SectionState();
+  _SectionState createState() => _SectionState();
 }
 
-class __SectionState extends State<_Section> {
+class _SectionState extends State<_Section> {
   TextEditingController _ctrl;
 
   @override
