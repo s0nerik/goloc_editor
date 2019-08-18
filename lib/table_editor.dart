@@ -87,7 +87,7 @@ class _TableEditorState extends State<TableEditor> {
   }
 }
 
-class _Section extends StatefulWidget {
+class _Section extends StatelessWidget {
   final Section section;
 
   const _Section({
@@ -96,28 +96,15 @@ class _Section extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SectionState createState() => _SectionState();
-}
-
-class _SectionState extends State<_Section> {
-  TextEditingController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    final text =
-        DocumentBloc.of(context).getCurrentHeaderValue(widget.section.row);
-    _ctrl = TextEditingController(text: text);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SliverStickyHeader(
       header: Material(
         color: Colors.blueGrey,
         elevation: 4,
         child: TextField(
-          controller: _ctrl,
+          controller: TextEditingController(
+            text: DocumentBloc.of(context).getCurrentHeaderValue(section.row),
+          ),
           decoration: const InputDecoration(
             contentPadding: _padding,
             border: InputBorder.none,
@@ -126,14 +113,14 @@ class _SectionState extends State<_Section> {
               DefaultTextStyle.of(context).style.copyWith(color: Colors.white),
           maxLines: null,
           onChanged: (text) {
-            DocumentBloc.of(context).setHeader(widget.section.row, text);
+            DocumentBloc.of(context).setHeader(section.row, text);
           },
         ),
       ),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, i) => _Row(i: widget.section.row + i + 1),
-          childCount: widget.section.length,
+          (context, i) => _Row(i: section.row + i + 1),
+          childCount: section.length,
         ),
       ),
     );
