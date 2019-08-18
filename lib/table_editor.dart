@@ -7,7 +7,7 @@ import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:goloc_editor/util/widget_util.dart';
-import 'package:goloc_editor/widget/value_stream_builder.dart';
+import 'package:goloc_editor/widget/async.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;
@@ -38,16 +38,15 @@ class _TableEditorState extends State<TableEditor> {
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
       ],
       child: Consumer<DocumentBloc>(
-        builder: (context, bloc, _) => ValueStreamBuilder<DocumentSize>(
-          stream: bloc.size,
-          initialValue: DocumentSize.empty,
-          builder: (context, size) {
-            if (size.rows == 0) {
+        builder: (context, bloc, _) => ValueObservableBuilder<Document>(
+          stream: bloc.document,
+          builder: (context, document) {
+            if (document.rows == 0) {
               return Container();
             }
             return BlocProvider(
               builder: (context) => TableSizeBloc(
-                data: DocumentBloc.of(context).data,
+                data: document.data,
                 cellWidth: _cellWidth,
                 style:
                     inherited<DefaultTextStyle>(context, listen: false).style,
@@ -73,7 +72,7 @@ class _TableEditorState extends State<TableEditor> {
                     ),
                     Expanded(
                       child: ListView.separated(
-                        itemCount: max(0, size.rows - 1),
+                        itemCount: max(0, document.rows - 1),
                         itemBuilder: (_, i) => _Row(i: i + 1),
                         separatorBuilder: (_, __) => const Divider(height: 1),
                       ),
