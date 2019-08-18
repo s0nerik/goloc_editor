@@ -230,11 +230,14 @@ class _RowDragHandle extends StatelessWidget {
     if (row == 0) {
       return const SizedBox(width: _rowIndicatorWidth);
     }
-    return Container(
-      width: _rowIndicatorWidth,
-      alignment: Alignment.topCenter,
-      padding: _padding,
-      child: Text('•', style: TextStyle(fontWeight: FontWeight.bold)),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _rowIndicatorWidth,
+        alignment: Alignment.topCenter,
+        padding: _padding,
+        child: Text('•', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
     );
   }
 }
