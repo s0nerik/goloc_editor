@@ -114,23 +114,20 @@ class __SectionState extends State<_Section> {
   Widget build(BuildContext context) {
     return SliverStickyHeader(
       header: Material(
-        color: Colors.white,
+        color: Colors.blueGrey,
         elevation: 4,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          alignment: Alignment.centerLeft,
-          child: TextField(
-            controller: _ctrl,
-            decoration: const InputDecoration(
-              contentPadding: _padding,
-              border: InputBorder.none,
-            ),
-            style: DefaultTextStyle.of(context).style,
-            maxLines: null,
-            onChanged: (text) {
-              DocumentBloc.of(context).setHeader(widget.section.row, text);
-            },
+        child: TextField(
+          controller: _ctrl,
+          decoration: const InputDecoration(
+            contentPadding: _padding,
+            border: InputBorder.none,
           ),
+          style:
+              DefaultTextStyle.of(context).style.copyWith(color: Colors.white),
+          maxLines: null,
+          onChanged: (text) {
+            DocumentBloc.of(context).setHeader(widget.section.row, text);
+          },
         ),
       ),
       sliver: SliverList(
