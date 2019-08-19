@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -166,6 +168,9 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
   ScrollController _ctrl;
   _TableOffset _tableOffset;
 
+  StreamSubscription _heightSub;
+  StreamSubscription _colsSub;
+
   @override
   void initState() {
     super.initState();
@@ -174,6 +179,14 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
     _ctrl = ScrollController(
         initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
     _ctrl.addListener(_notifyOffset);
+
+    _heightSub =
+        TableSizeBloc.of(context).rowHeightStream(widget.i).listen((_) {
+      setState(() {});
+    });
+    _colsSub = DocumentBloc.of(context).colsStream.listen((_) {
+      setState(() {});
+    });
   }
 
   @override
@@ -195,66 +208,60 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return ValueStreamBuilder<double>(
-      stream: TableSizeBloc.of(context).getRowHeight(widget.i),
-      initialValue: TableSizeBloc.of(context).getCurrentRowHeight(widget.i),
-      builder: (context, height) => Container(
-        height: height,
-        color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-        child: ValueStreamBuilder<int>(
-          stream: DocumentBloc.of(context).cols,
-          initialValue: 0,
-          builder: (context, cols) {
-            final content = _content(context, cols, height);
-            final draggable = LongPressDraggable<int>(
-              data: widget.i,
-              axis: Axis.vertical,
-              childWhenDragging: Opacity(
-                opacity: 0.5,
-                child: content,
-              ),
-              maxSimultaneousDrags: 1,
-              feedback: Material(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width,
-                  ),
-                  child: content,
-                ),
-                elevation: 4.0,
-              ),
-              child: content,
-            );
-            return DragTarget<int>(
-              onWillAccept: (row) {
-                print('onWillAccept: $row');
-                return widget.i != row;
-              },
-              onAccept: (row) {
-                print('onAccept: $row');
-              },
-              builder: (BuildContext context, List<int> candidateData,
-                  List<dynamic> rejectedData) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    AnimatedSize(
-                      duration: Duration(milliseconds: 100),
-                      vsync: this,
-                      child: candidateData.isEmpty
-                          ? Container()
-                          : Opacity(
-                              opacity: 0.0,
-                              child: content,
-                            ),
-                    ),
-                    candidateData.isEmpty ? draggable : content,
-                  ],
-                );
-              },
-            );
-          },
+    final height = TableSizeBloc.of(context).rowHeight(widget.i);
+    final cols = DocumentBloc.of(context).cols;
+
+    final content = _content(context, cols, height);
+    final draggable = LongPressDraggable<int>(
+      data: widget.i,
+      axis: Axis.vertical,
+      childWhenDragging: Opacity(
+        opacity: 0.5,
+        child: content,
+      ),
+      maxSimultaneousDrags: 1,
+      feedback: Material(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+          ),
+          child: content,
         ),
+        elevation: 4.0,
+      ),
+      child: content,
+    );
+
+    return Container(
+      height: height,
+      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
+      child: DragTarget<int>(
+        onWillAccept: (row) {
+          print('onWillAccept: $row');
+          return widget.i != row;
+        },
+        onAccept: (row) {
+          print('onAccept: $row');
+        },
+        builder: (BuildContext context, List<int> candidateData,
+            List<dynamic> rejectedData) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              AnimatedSize(
+                duration: Duration(milliseconds: 100),
+                vsync: this,
+                child: candidateData.isEmpty
+                    ? Container()
+                    : Opacity(
+                        opacity: 0.0,
+                        child: content,
+                      ),
+              ),
+              candidateData.isEmpty ? draggable : content,
+            ],
+          );
+        },
       ),
     );
   }

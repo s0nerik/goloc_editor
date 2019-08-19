@@ -119,7 +119,9 @@ class DocumentBloc implements Bloc {
   final BehaviorSubject<Document> _document =
       BehaviorSubject.seeded(Document([]));
   ValueObservable<Document> get document => _document;
-  Stream<int> get cols => document.map((d) => d.cols).distinct();
+
+  int get cols => document.value.cols;
+  Stream<int> get colsStream => document.map((d) => d.cols).distinct();
 
   Stream<String> getCell(int row, int col) =>
       _document.map((d) => d.getCell(row, col)).distinct();

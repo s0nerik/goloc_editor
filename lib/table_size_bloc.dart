@@ -16,10 +16,10 @@ class TableSizeBloc implements Bloc {
 
   final _sizes = BehaviorSubject<List<List<double>>>();
 
-  Stream<double> getRowHeight(int row) =>
+  Stream<double> rowHeightStream(int row) =>
       _sizes.map((sizes) => sizes[row]).map(_getRowHeight).distinct();
 
-  double getCurrentRowHeight(int row) => _getRowHeight(_sizes.value[row]);
+  double rowHeight(int row) => _getRowHeight(_sizes.value[row]);
 
   double _getRowHeight(List<double> cellHeights) {
     if (cellHeights.isNotEmpty) {
