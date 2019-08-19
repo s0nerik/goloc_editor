@@ -193,6 +193,8 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
   void dispose() {
     _tableOffset.removeListener(_updateWithOffset);
     _ctrl.removeListener(_notifyOffset);
+    _heightSub?.cancel();
+    _colsSub?.cancel();
     super.dispose();
   }
 
@@ -211,7 +213,25 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
     final height = TableSizeBloc.of(context).rowHeight(widget.i);
     final cols = DocumentBloc.of(context).cols;
 
-    final content = _content(context, cols, height);
+    final content = SizedBox(
+      height: height,
+      child: Row(
+        children: <Widget>[
+          _RowDragHandle(row: widget.i),
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: ListView.separated(
+              controller: _ctrl,
+              itemCount: cols,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+              separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+            ),
+          ),
+        ],
+      ),
+    );
+
     final draggable = LongPressDraggable<int>(
       data: widget.i,
       axis: Axis.vertical,
@@ -262,27 +282,6 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _content(BuildContext context, int cols, double height) {
-    return SizedBox(
-      height: height,
-      child: Row(
-        children: <Widget>[
-          _RowDragHandle(row: widget.i),
-          const VerticalDivider(width: 1),
-          Expanded(
-            child: ListView.separated(
-              controller: _ctrl,
-              itemCount: cols,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-              separatorBuilder: (_, __) => const VerticalDivider(width: 1),
-            ),
-          ),
-        ],
       ),
     );
   }
