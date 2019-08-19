@@ -21,6 +21,78 @@ class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
 }
 
+class _DraggedChild extends ValueNotifier<ValueKey<int>> {
+  Element _element;
+  double get height => _element?.size?.height ?? 0;
+  Offset get position {
+    final renderBox = _element?.renderObject as RenderBox;
+    if (renderBox?.attached == true) {
+      return renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+    } else {
+      return Offset.zero;
+    }
+  }
+
+  _DraggedChild() : super(null);
+
+  @override
+  set value(ValueKey<int> key) {
+    if (key == null) {
+      _element = null;
+      super.value = null;
+    }
+    scheduleMicrotask(() {
+      _scrollViewKey.currentContext.visitChildElements((e) {
+        _updateCandidateKey(e, key);
+      });
+    });
+  }
+
+  void _updateCandidateKey(Element e, ValueKey<int> key) {
+    if (value == key) return;
+
+    if (e.widget.key == key) {
+      _element = e;
+      super.value = key;
+    } else {
+      e.visitChildren((e) => _updateCandidateKey(e, key));
+    }
+  }
+}
+
+class _DropCandidate extends ValueNotifier<ValueKey<int>> {
+  Widget widget;
+  double height = 0;
+
+  _DropCandidate() : super(null);
+
+  @override
+  set value(ValueKey<int> key) {
+    if (key == null) {
+      widget = null;
+      height = 0;
+      super.value = null;
+    }
+    scheduleMicrotask(() {
+      _scrollViewKey.currentContext.visitChildElements((e) {
+        _updateCandidateKey(e, key);
+      });
+    });
+  }
+
+  void _updateCandidateKey(Element e, ValueKey<int> key) {
+    if (value == key) return;
+
+    if (e.widget.key == key) {
+      widget = e.widget;
+      height = e.size?.height ?? 0;
+      super.value = key;
+    } else {
+      e.visitChildren((e) => _updateCandidateKey(e, key));
+    }
+  }
+}
+
 class TableEditor extends StatelessWidget {
   final String source;
 
@@ -35,6 +107,8 @@ class TableEditor extends StatelessWidget {
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
+        ChangeNotifierProvider(builder: (_) => _DraggedChild()),
+        ChangeNotifierProvider(builder: (_) => _DropCandidate()),
       ],
       child: _EditorContent(),
     );
@@ -167,7 +241,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
+class _RowState extends State<_Row> with TickerProviderStateMixin {
   ScrollController _ctrl;
   _TableOffset _tableOffset;
 
@@ -216,32 +290,45 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
     final height = TableSizeBloc.of(context).rowHeight(widget.i);
     final cols = DocumentBloc.of(context).cols;
 
-    final content = SizedBox(
-      height: height,
-      child: Row(
-        children: <Widget>[
-          _RowDragHandle(row: widget.i),
-          const VerticalDivider(width: 1),
-          Expanded(
-            child: ListView.separated(
-              controller: _ctrl,
-              itemCount: cols,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-              separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+    final key = ValueKey<int>(widget.i);
+
+    final content = Container(
+      key: key,
+      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
+      child: SizedBox(
+        height: height,
+        child: Row(
+          children: <Widget>[
+            _RowDragHandle(row: widget.i),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: ListView.separated(
+                controller: _ctrl,
+                itemCount: cols,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+                separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
-    final draggable = LongPressDraggable<int>(
-      data: widget.i,
+    final draggable = LongPressDraggable<ValueKey<int>>(
+      key: key,
+      data: key,
       axis: Axis.vertical,
       childWhenDragging: Opacity(
         opacity: 0.5,
         child: content,
       ),
+      onDragStarted: () {
+        Provider.of<_DraggedChild>(context, listen: false).value = key;
+      },
+      onDragEnd: (_) {
+        Provider.of<_DraggedChild>(context).value = null;
+      },
       maxSimultaneousDrags: 1,
       feedback: Material(
         child: ConstrainedBox(
@@ -255,35 +342,37 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
       child: content,
     );
 
-    return DragTarget<int>(
-      onWillAccept: (row) {
-        print('onWillAccept: $row');
-        return widget.i != row;
+    return DragTarget<ValueKey<int>>(
+      onWillAccept: (candidateKey) {
+        final result = key.value != candidateKey.value;
+        if (result) {
+          Provider.of<_DropCandidate>(context, listen: false).value =
+              candidateKey;
+        }
+        return result;
       },
       onAccept: (row) {
         print('onAccept: $row');
       },
-      builder: (BuildContext context, List<int> candidateData,
+      builder: (BuildContext context, List<ValueKey<int>> candidateData,
           List<dynamic> rejectedData) {
-        return Container(
-          height: height,
-          color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              AnimatedSize(
-                duration: Duration(milliseconds: 100),
-                vsync: this,
-                child: candidateData.isEmpty
-                    ? Container()
-                    : Opacity(
-                        opacity: 0.0,
-                        child: content,
-                      ),
-              ),
-              candidateData.isEmpty ? draggable : content,
-            ],
-          ),
+        final draggedChild = Provider.of<_DraggedChild>(context, listen: false);
+
+        final dropCandidate =
+            Provider.of<_DropCandidate>(context, listen: false);
+        double candidateHeight = dropCandidate.height;
+
+        print('draggedChild.position: ${draggedChild.position}');
+
+        const emptyPlaceholder = SizedBox.shrink();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            candidateData.isNotEmpty
+                ? SizedBox(height: candidateHeight)
+                : emptyPlaceholder,
+            candidateData.isEmpty ? draggable : content,
+          ],
         );
       },
     );
