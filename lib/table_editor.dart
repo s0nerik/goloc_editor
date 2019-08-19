@@ -15,6 +15,8 @@ const double _cellWidth = 128;
 const double _rowIndicatorWidth = 32;
 const _padding = const EdgeInsets.all(8.0);
 
+final _scrollViewKey = GlobalKey(debugLabel: '_scrollViewKey');
+
 class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
 }
@@ -80,6 +82,7 @@ class _EditorContent extends StatelessWidget {
                       maintainState: true,
                       opaque: true,
                       builder: (context) => CustomScrollView(
+                        key: _scrollViewKey,
                         slivers: document.sections
                             .map((s) => _Section(section: s))
                             .toList(),
@@ -252,20 +255,20 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
       child: content,
     );
 
-    return Container(
-      height: height,
-      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-      child: DragTarget<int>(
-        onWillAccept: (row) {
-          print('onWillAccept: $row');
-          return widget.i != row;
-        },
-        onAccept: (row) {
-          print('onAccept: $row');
-        },
-        builder: (BuildContext context, List<int> candidateData,
-            List<dynamic> rejectedData) {
-          return Column(
+    return DragTarget<int>(
+      onWillAccept: (row) {
+        print('onWillAccept: $row');
+        return widget.i != row;
+      },
+      onAccept: (row) {
+        print('onAccept: $row');
+      },
+      builder: (BuildContext context, List<int> candidateData,
+          List<dynamic> rejectedData) {
+        return Container(
+          height: height,
+          color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               AnimatedSize(
@@ -280,9 +283,9 @@ class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
               ),
               candidateData.isEmpty ? draggable : content,
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
