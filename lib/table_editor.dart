@@ -162,7 +162,7 @@ class _Row extends StatefulWidget {
   _RowState createState() => _RowState();
 }
 
-class _RowState extends State<_Row> {
+class _RowState extends State<_Row> with SingleTickerProviderStateMixin {
   ScrollController _ctrl;
   _TableOffset _tableOffset;
 
@@ -205,7 +205,26 @@ class _RowState extends State<_Row> {
           stream: DocumentBloc.of(context).cols,
           initialValue: 0,
           builder: (context, cols) {
-            final content = _content(context, cols);
+            final content = _content(context, cols, height);
+            final draggable = LongPressDraggable<int>(
+              data: widget.i,
+              axis: Axis.vertical,
+              childWhenDragging: Opacity(
+                opacity: 0.5,
+                child: content,
+              ),
+              maxSimultaneousDrags: 1,
+              feedback: Material(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width,
+                  ),
+                  child: content,
+                ),
+                elevation: 4.0,
+              ),
+              child: content,
+            );
             return DragTarget<int>(
               onWillAccept: (row) {
                 print('onWillAccept: $row');
@@ -214,26 +233,25 @@ class _RowState extends State<_Row> {
               onAccept: (row) {
                 print('onAccept: $row');
               },
-              builder: (_, __, ___) => LongPressDraggable<int>(
-                data: widget.i,
-                axis: Axis.vertical,
-                childWhenDragging: DecoratedBox(
-                  decoration: BoxDecoration(color: Colors.blue.withAlpha(127)),
-                  child: content,
-                ),
-                maxSimultaneousDrags: 1,
-                feedback: Material(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: height,
-                      maxWidth: MediaQuery.of(context).size.width,
+              builder: (BuildContext context, List<int> candidateData,
+                  List<dynamic> rejectedData) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    AnimatedSize(
+                      duration: Duration(milliseconds: 100),
+                      vsync: this,
+                      child: candidateData.isEmpty
+                          ? Container()
+                          : Opacity(
+                              opacity: 0.0,
+                              child: content,
+                            ),
                     ),
-                    child: content,
-                  ),
-                  elevation: 4.0,
-                ),
-                child: content,
-              ),
+                    candidateData.isEmpty ? draggable : content,
+                  ],
+                );
+              },
             );
           },
         ),
@@ -241,21 +259,24 @@ class _RowState extends State<_Row> {
     );
   }
 
-  Widget _content(BuildContext context, int cols) {
-    return Row(
-      children: <Widget>[
-        _RowDragHandle(row: widget.i),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: ListView.separated(
-            controller: _ctrl,
-            itemCount: cols,
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
-            separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+  Widget _content(BuildContext context, int cols, double height) {
+    return SizedBox(
+      height: height,
+      child: Row(
+        children: <Widget>[
+          _RowDragHandle(row: widget.i),
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: ListView.separated(
+              controller: _ctrl,
+              itemCount: cols,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, j) => _Cell(row: widget.i, col: j),
+              separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
