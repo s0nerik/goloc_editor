@@ -7,6 +7,7 @@ import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
+import 'package:goloc_editor/util/element_info.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
 import 'package:provider/provider.dart';
@@ -21,76 +22,14 @@ class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
 }
 
-class _DraggedChild extends ValueNotifier<ValueKey<int>> {
-  Element _element;
-  double get height => _element?.size?.height ?? 0;
-  Offset get position {
-    final renderBox = _element?.renderObject as RenderBox;
-    if (renderBox?.attached == true) {
-      return renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
-    } else {
-      return Offset.zero;
-    }
-  }
-
-  _DraggedChild() : super(null);
-
-  @override
-  set value(ValueKey<int> key) {
-    if (key == null) {
-      _element = null;
-      super.value = null;
-    }
-    scheduleMicrotask(() {
-      _scrollViewKey.currentContext.visitChildElements((e) {
-        _updateCandidateKey(e, key);
-      });
-    });
-  }
-
-  void _updateCandidateKey(Element e, ValueKey<int> key) {
-    if (value == key) return;
-
-    if (e.widget.key == key) {
-      _element = e;
-      super.value = key;
-    } else {
-      e.visitChildren((e) => _updateCandidateKey(e, key));
-    }
-  }
+class _DraggedChild extends ElementInfoNotifier {
+  static _DraggedChild of(BuildContext context) =>
+      Provider.of(context, listen: false);
 }
 
-class _DropCandidate extends ValueNotifier<ValueKey<int>> {
-  Widget widget;
-  double height = 0;
-
-  _DropCandidate() : super(null);
-
-  @override
-  set value(ValueKey<int> key) {
-    if (key == null) {
-      widget = null;
-      height = 0;
-      super.value = null;
-    }
-    scheduleMicrotask(() {
-      _scrollViewKey.currentContext.visitChildElements((e) {
-        _updateCandidateKey(e, key);
-      });
-    });
-  }
-
-  void _updateCandidateKey(Element e, ValueKey<int> key) {
-    if (value == key) return;
-
-    if (e.widget.key == key) {
-      widget = e.widget;
-      height = e.size?.height ?? 0;
-      super.value = key;
-    } else {
-      e.visitChildren((e) => _updateCandidateKey(e, key));
-    }
-  }
+class _DropCandidate extends ElementInfoNotifier {
+  static _DropCandidate of(BuildContext context) =>
+      Provider.of(context, listen: false);
 }
 
 class TableEditor extends StatelessWidget {
@@ -319,10 +258,10 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       data: key,
       axis: Axis.vertical,
       onDragStarted: () {
-        Provider.of<_DraggedChild>(context, listen: false).value = key;
+        _DraggedChild.of(context).setKey(_scrollViewKey.currentContext, key);
       },
       onDragEnd: (_) {
-        Provider.of<_DraggedChild>(context).value = null;
+        _DraggedChild.of(context).reset();
       },
       maxSimultaneousDrags: 1,
       feedback: Material(
@@ -341,8 +280,8 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       onWillAccept: (candidateKey) {
         final result = key.value != candidateKey.value;
         if (result) {
-          Provider.of<_DropCandidate>(context, listen: false).value =
-              candidateKey;
+          _DropCandidate.of(context)
+              .setKey(_scrollViewKey.currentContext, candidateKey);
         }
         return result;
       },
@@ -356,7 +295,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
 
   Widget _dragTargetBuilder(BuildContext context,
       List<ValueKey<int>> candidateData, Widget draggable, Widget content) {
-    final dropCandidate = Provider.of<_DropCandidate>(context, listen: false);
+    final dropCandidate = _DropCandidate.of(context);
     double candidateHeight = dropCandidate.height;
 
     const emptyPlaceholder = SizedBox.shrink();
