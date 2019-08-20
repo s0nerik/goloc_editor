@@ -293,7 +293,6 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final key = ValueKey<int>(widget.i);
 
     final content = Container(
-      key: key,
       color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
       child: SizedBox(
         height: height,
@@ -316,12 +315,9 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     );
 
     final draggable = LongPressDraggable<ValueKey<int>>(
+      key: key,
       data: key,
       axis: Axis.vertical,
-      childWhenDragging: Opacity(
-        opacity: 0.5,
-        child: content,
-      ),
       onDragStarted: () {
         Provider.of<_DraggedChild>(context, listen: false).value = key;
       },
@@ -353,27 +349,25 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       onAccept: (row) {
         print('onAccept: $row');
       },
-      builder: (BuildContext context, List<ValueKey<int>> candidateData,
-          List<dynamic> rejectedData) {
-        final draggedChild = Provider.of<_DraggedChild>(context, listen: false);
+      builder: (BuildContext context, List<ValueKey<int>> candidateData, _) =>
+          _dragTargetBuilder(context, candidateData, draggable, content),
+    );
+  }
 
-        final dropCandidate =
-            Provider.of<_DropCandidate>(context, listen: false);
-        double candidateHeight = dropCandidate.height;
+  Widget _dragTargetBuilder(BuildContext context,
+      List<ValueKey<int>> candidateData, Widget draggable, Widget content) {
+    final dropCandidate = Provider.of<_DropCandidate>(context, listen: false);
+    double candidateHeight = dropCandidate.height;
 
-        print('draggedChild.position: ${draggedChild.position}');
-
-        const emptyPlaceholder = SizedBox.shrink();
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            candidateData.isNotEmpty
-                ? SizedBox(height: candidateHeight)
-                : emptyPlaceholder,
-            candidateData.isEmpty ? draggable : content,
-          ],
-        );
-      },
+    const emptyPlaceholder = SizedBox.shrink();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        candidateData.isNotEmpty
+            ? SizedBox(height: candidateHeight)
+            : emptyPlaceholder,
+        candidateData.isEmpty ? draggable : content,
+      ],
     );
   }
 }
