@@ -8,8 +8,10 @@ import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:goloc_editor/util/element_info.dart';
+import 'package:goloc_editor/util/global_key_store.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
+import 'package:goloc_editor/widget/element_info_tracker.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;
@@ -17,6 +19,8 @@ const double _rowIndicatorWidth = 32;
 const _padding = const EdgeInsets.all(8.0);
 
 final _scrollViewKey = GlobalKey(debugLabel: '_scrollViewKey');
+
+final _rowKeys = GlobalKeyStore<int>();
 
 class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
@@ -229,7 +233,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final height = TableSizeBloc.of(context).rowHeight(widget.i);
     final cols = DocumentBloc.of(context).cols;
 
-    final key = ValueKey<int>(widget.i);
+    final key = _rowKeys[widget.i];
 
     final content = Container(
       color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
@@ -253,7 +257,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       ),
     );
 
-    final draggable = LongPressDraggable<ValueKey<int>>(
+    final draggable = LongPressDraggable<GlobalKey>(
       key: key,
       data: key,
       axis: Axis.vertical,
@@ -276,9 +280,9 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       child: content,
     );
 
-    return DragTarget<ValueKey<int>>(
+    return DragTarget<GlobalKey>(
       onWillAccept: (candidateKey) {
-        final result = key.value != candidateKey.value;
+        final result = key != candidateKey;
         if (result) {
           _DropCandidate.of(context)
               .setKey(_scrollViewKey.currentContext, candidateKey);
@@ -288,24 +292,38 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       onAccept: (row) {
         print('onAccept: $row');
       },
-      builder: (BuildContext context, List<ValueKey<int>> candidateData, _) =>
-          _dragTargetBuilder(context, candidateData, draggable, content),
+      builder: (BuildContext context, List<GlobalKey> candidateData, _) =>
+          _dragTargetBuilder(context, candidateData, draggable, content, key),
     );
   }
 
-  Widget _dragTargetBuilder(BuildContext context,
-      List<ValueKey<int>> candidateData, Widget draggable, Widget content) {
-    final dropCandidate = _DropCandidate.of(context);
-    double candidateHeight = dropCandidate.height;
+  Widget _dragTargetBuilder(BuildContext context, List<GlobalKey> candidateData,
+      Widget draggable, Widget content, GlobalKey contentKey) {
+    if (candidateData.isNotEmpty) {
+      final candidateKey = candidateData[0];
+      return ElementInfoTracker(
+        selfKey: contentKey,
+        otherKey: candidateKey,
+        builder: (_, selfInfo, candidateInfo) {
+          print('self pos: ${selfInfo.position}');
+          print('candidate pos: ${candidateInfo.position}');
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(height: candidateInfo.size.height),
+              content,
+            ],
+          );
+        },
+      );
+    }
 
     const emptyPlaceholder = SizedBox.shrink();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        candidateData.isNotEmpty
-            ? SizedBox(height: candidateHeight)
-            : emptyPlaceholder,
-        candidateData.isEmpty ? draggable : content,
+        emptyPlaceholder,
+        draggable,
       ],
     );
   }

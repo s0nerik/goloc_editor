@@ -10,13 +10,35 @@ class ElementInfo {
   final Offset position;
   final Widget widget;
 
+  ElementInfo.context(BuildContext context)
+      : size = context?.size ?? Size.zero,
+        position = _getRenderObjectPosition(context?.findRenderObject()),
+        widget = context?.widget;
+
   ElementInfo(Element element)
       : size = element?.size ?? Size.zero,
         position = _getPosition(element),
         widget = element?.widget;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ElementInfo &&
+          runtimeType == other.runtimeType &&
+          size == other.size &&
+          position == other.position &&
+          widget?.runtimeType == other.widget?.runtimeType;
+
+  @override
+  int get hashCode =>
+      size.hashCode ^ position.hashCode ^ (widget?.runtimeType?.hashCode ?? 0);
+
   static Offset _getPosition(Element element) {
-    final renderBox = element?.renderObject as RenderBox;
+    return _getRenderObjectPosition(element?.renderObject);
+  }
+
+  static Offset _getRenderObjectPosition(RenderObject renderObject) {
+    final renderBox = renderObject as RenderBox;
     if (renderBox?.attached == true) {
       return renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
     } else {
