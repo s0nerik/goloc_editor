@@ -236,6 +236,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final key = _rowKeys[widget.i];
 
     final content = Container(
+      key: key,
       color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
       child: SizedBox(
         height: height,
@@ -258,7 +259,6 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     );
 
     final draggable = LongPressDraggable<GlobalKey>(
-      key: key,
       data: key,
       axis: Axis.vertical,
       onDragStarted: () {
