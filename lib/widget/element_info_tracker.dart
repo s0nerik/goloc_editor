@@ -5,12 +5,14 @@ typedef ElementInfoBuilder = Widget Function(
     BuildContext context, ElementInfo selfInfo, ElementInfo otherInfo);
 
 class ElementInfoTracker extends StatefulWidget {
-  final GlobalKey selfKey;
-  final GlobalKey otherKey;
+  final GlobalKey parentKey;
+  final Key selfKey;
+  final Key otherKey;
   final ElementInfoBuilder builder;
 
   const ElementInfoTracker({
     Key key,
+    @required this.parentKey,
     @required this.selfKey,
     @required this.otherKey,
     @required this.builder,
@@ -44,30 +46,46 @@ class _ElementInfoTrackerState extends State<ElementInfoTracker> {
 
   void _selfCallback(_) {
     if (mounted) {
-      final ctx = widget.selfKey?.currentContext;
-      if (ctx != null) {
-        final info = ElementInfo.context(widget.selfKey.currentContext);
-        if (_selfInfo != info) {
-          setState(() {
-            _selfInfo = info;
-          });
-        }
+      final info =
+          ElementInfo.find(widget.parentKey.currentContext, widget.selfKey);
+      print('self position: ${info.position}');
+      if (_selfInfo != info) {
+        setState(() {
+          _selfInfo = info;
+        });
       }
+//      final ctx = widget.selfKey?.currentContext;
+//      if (ctx != null) {
+//        final info = ElementInfo.context(widget.selfKey.currentContext);
+//        if (_selfInfo != info) {
+//          setState(() {
+//            _selfInfo = info;
+//          });
+//        }
+//      }
       WidgetsBinding.instance.addPostFrameCallback(_selfCallback);
     }
   }
 
   void _otherCallback(_) {
     if (mounted) {
-      final ctx = widget.otherKey?.currentContext;
-      if (ctx != null) {
-        final info = ElementInfo.context(ctx);
-        if (_otherInfo != info) {
-          setState(() {
-            _otherInfo = info;
-          });
-        }
+      final info =
+          ElementInfo.find(widget.parentKey.currentContext, widget.selfKey);
+      print('other position: ${info.position}');
+      if (_otherInfo != info) {
+        setState(() {
+          _otherInfo = info;
+        });
       }
+//      final ctx = widget.otherKey?.currentContext;
+//      if (ctx != null) {
+//        final info = ElementInfo.context(ctx);
+//        if (_otherInfo != info) {
+//          setState(() {
+//            _otherInfo = info;
+//          });
+//        }
+//      }
       WidgetsBinding.instance.addPostFrameCallback(_otherCallback);
     }
   }

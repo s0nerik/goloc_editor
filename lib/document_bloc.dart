@@ -149,8 +149,8 @@ class DocumentBloc implements Bloc {
 
   Future<void> _init() async {
     // final csvString = await File(_source).readAsString();
-//    final csvString = await rootBundle.loadString('assets/localizations.csv');
-    final csvString = await rootBundle.loadString('assets/_localizations.csv');
+    final csvString = await rootBundle.loadString('assets/localizations.csv');
+//    final csvString = await rootBundle.loadString('assets/_localizations.csv');
     final csvList = const CsvToListConverter().convert(csvString);
     final mappedList =
         csvList.map((row) => row.map((col) => col as String).toList()).toList();

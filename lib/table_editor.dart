@@ -8,9 +8,9 @@ import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:goloc_editor/util/element_info.dart';
-import 'package:goloc_editor/util/global_key_store.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
+import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:goloc_editor/widget/element_info_tracker.dart';
 import 'package:provider/provider.dart';
 
@@ -19,8 +19,6 @@ const double _rowIndicatorWidth = 32;
 const _padding = const EdgeInsets.all(8.0);
 
 final _scrollViewKey = GlobalKey(debugLabel: '_scrollViewKey');
-
-final _rowKeys = GlobalKeyStore<int>();
 
 class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
@@ -233,7 +231,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final height = TableSizeBloc.of(context).rowHeight(widget.i);
     final cols = DocumentBloc.of(context).cols;
 
-    final key = _rowKeys[widget.i];
+    final key = ValueKey(widget.i);
 
     final content = Container(
       key: key,
@@ -258,11 +256,14 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       ),
     );
 
-    final draggable = LongPressDraggable<GlobalKey>(
+    final draggable = drag.LongPressDraggable<Key>(
       data: key,
       axis: Axis.vertical,
       onDragStarted: () {
         _DraggedChild.of(context).setKey(_scrollViewKey.currentContext, key);
+      },
+      onDragPositionChanged: (details) {
+        print('onDragPositionChanged: ${details.offset}');
       },
       onDragEnd: (_) {
         _DraggedChild.of(context).reset();
@@ -280,7 +281,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       child: content,
     );
 
-    return DragTarget<GlobalKey>(
+    return DragTarget<Key>(
       onWillAccept: (candidateKey) {
         final result = key != candidateKey;
         if (result) {
@@ -292,16 +293,17 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       onAccept: (row) {
         print('onAccept: $row');
       },
-      builder: (BuildContext context, List<GlobalKey> candidateData, _) =>
+      builder: (BuildContext context, List<Key> candidateData, _) =>
           _dragTargetBuilder(context, candidateData, draggable, content, key),
     );
   }
 
-  Widget _dragTargetBuilder(BuildContext context, List<GlobalKey> candidateData,
-      Widget draggable, Widget content, GlobalKey contentKey) {
+  Widget _dragTargetBuilder(BuildContext context, List<Key> candidateData,
+      Widget draggable, Widget content, Key contentKey) {
     if (candidateData.isNotEmpty) {
       final candidateKey = candidateData[0];
       return ElementInfoTracker(
+        parentKey: _scrollViewKey,
         selfKey: contentKey,
         otherKey: candidateKey,
         builder: (_, selfInfo, candidateInfo) {
