@@ -43,6 +43,11 @@ typedef DraggableCanceledCallback = void Function(
 /// Used by [Draggable.onDragEnd]
 typedef DragEndCallback = void Function(DraggableDetails details);
 
+/// Signature for when the [Draggable] position has changed.
+///
+/// Used by [Draggable.onDragPositionChanged]
+typedef DragPositionCallback = void Function(DraggableDetails details);
+
 /// Signature for when a [Draggable] leaves a [DragTarget].
 ///
 /// Used by [DragTarget.onLeave].
@@ -108,6 +113,7 @@ class Draggable<T> extends StatefulWidget {
     this.affinity,
     this.maxSimultaneousDrags,
     this.onDragStarted,
+    this.onDragPositionChanged,
     this.onDraggableCanceled,
     this.onDragEnd,
     this.onDragCompleted,
@@ -248,6 +254,9 @@ class Draggable<T> extends StatefulWidget {
   /// the tree (i.e. [State.mounted] is true).
   final DragEndCallback onDragEnd;
 
+  /// Called when the draggable position has changed.
+  final DragPositionCallback onDragPositionChanged;
+
   /// Creates a gesture recognizer that recognizes the start of the drag.
   ///
   /// Subclasses can override this function to customize when they start
@@ -285,6 +294,7 @@ class LongPressDraggable<T> extends Draggable<T> {
     DragAnchor dragAnchor = DragAnchor.child,
     int maxSimultaneousDrags,
     VoidCallback onDragStarted,
+    DragPositionCallback onDragPositionChanged,
     DraggableCanceledCallback onDraggableCanceled,
     DragEndCallback onDragEnd,
     VoidCallback onDragCompleted,
@@ -301,6 +311,7 @@ class LongPressDraggable<T> extends Draggable<T> {
           dragAnchor: dragAnchor,
           maxSimultaneousDrags: maxSimultaneousDrags,
           onDragStarted: onDragStarted,
+          onDragPositionChanged: onDragPositionChanged,
           onDraggableCanceled: onDraggableCanceled,
           onDragEnd: onDragEnd,
           onDragCompleted: onDragCompleted,
@@ -385,6 +396,14 @@ class _DraggableState<T> extends State<Draggable<T>> {
       feedback: widget.feedback,
       feedbackOffset: widget.feedbackOffset,
       ignoringFeedbackSemantics: widget.ignoringFeedbackSemantics,
+      onDragPositionChanged: (details) {
+        if (mounted && widget.onDragPositionChanged != null) {
+          widget.onDragPositionChanged(DraggableDetails(
+            velocity: Velocity(pixelsPerSecond: details.delta),
+            offset: details.globalPosition,
+          ));
+        }
+      },
       onDragEnd: (Velocity velocity, Offset offset, bool wasAccepted) {
         if (mounted) {
           setState(() {
@@ -564,6 +583,8 @@ enum _DragEndKind { dropped, canceled }
 typedef _OnDragEnd = void Function(
     Velocity velocity, Offset offset, bool wasAccepted);
 
+typedef _OnDragPositionChanged = void Function(DragUpdateDetails details);
+
 // The lifetime of this object is a little dubious right now. Specifically, it
 // lives as long as the pointer is down. Arguably it should self-immolate if the
 // overlay goes away. _DraggableState has some delicate logic to continue
@@ -578,6 +599,7 @@ class _DragAvatar<T> extends Drag {
     this.feedback,
     this.feedbackOffset = Offset.zero,
     this.onDragEnd,
+    this.onDragPositionChanged,
     @required this.ignoringFeedbackSemantics,
   })  : assert(overlayState != null),
         assert(ignoringFeedbackSemantics != null),
@@ -595,6 +617,7 @@ class _DragAvatar<T> extends Drag {
   final Widget feedback;
   final Offset feedbackOffset;
   final _OnDragEnd onDragEnd;
+  final _OnDragPositionChanged onDragPositionChanged;
   final OverlayState overlayState;
   final bool ignoringFeedbackSemantics;
 
@@ -608,6 +631,7 @@ class _DragAvatar<T> extends Drag {
   void update(DragUpdateDetails details) {
     _position += _restrictAxis(details.delta);
     updateDrag(_position);
+    if (onDragPositionChanged != null) onDragPositionChanged(details);
   }
 
   @override
