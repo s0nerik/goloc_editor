@@ -11,7 +11,6 @@ import 'package:goloc_editor/util/element_info.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
 import 'package:goloc_editor/widget/drag_target.dart' as drag;
-import 'package:goloc_editor/widget/element_info_tracker.dart';
 import 'package:provider/provider.dart';
 
 const double _cellWidth = 128;
@@ -24,13 +23,20 @@ class _TableOffset extends ValueNotifier<double> {
   _TableOffset() : super(0);
 }
 
-class _DraggedChild extends ElementInfoNotifier {
-  static _DraggedChild of(BuildContext context) =>
+class _DragPosition extends ValueNotifier<Offset> {
+  _DragPosition() : super(Offset.zero);
+
+  static _DragPosition of(BuildContext context) =>
       Provider.of(context, listen: false);
 }
 
 class _DropCandidate extends ElementInfoNotifier {
   static _DropCandidate of(BuildContext context) =>
+      Provider.of(context, listen: false);
+}
+
+class _DropTarget extends ElementInfoNotifier {
+  static _DropTarget of(BuildContext context) =>
       Provider.of(context, listen: false);
 }
 
@@ -48,8 +54,9 @@ class TableEditor extends StatelessWidget {
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
-        ChangeNotifierProvider(builder: (_) => _DraggedChild()),
+        ChangeNotifierProvider(builder: (_) => _DragPosition()),
         ChangeNotifierProvider(builder: (_) => _DropCandidate()),
+        ChangeNotifierProvider(builder: (_) => _DropTarget()),
       ],
       child: _EditorContent(),
     );
@@ -259,14 +266,11 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final draggable = drag.LongPressDraggable<Key>(
       data: key,
       axis: Axis.vertical,
-      onDragStarted: () {
-        _DraggedChild.of(context).setKey(_scrollViewKey.currentContext, key);
-      },
       onDragPositionChanged: (details) {
-        print('onDragPositionChanged: ${details.offset}');
+        _DragPosition.of(context).value = details.offset;
       },
       onDragEnd: (_) {
-        _DraggedChild.of(context).reset();
+        _DragPosition.of(context).value = Offset.zero;
       },
       maxSimultaneousDrags: 1,
       feedback: Material(
@@ -281,10 +285,11 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       child: content,
     );
 
-    return DragTarget<Key>(
+    return drag.DragTarget<Key>(
       onWillAccept: (candidateKey) {
         final result = key != candidateKey;
         if (result) {
+          _DropTarget.of(context).setKey(_scrollViewKey.currentContext, key);
           _DropCandidate.of(context)
               .setKey(_scrollViewKey.currentContext, candidateKey);
         }
@@ -301,22 +306,22 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
   Widget _dragTargetBuilder(BuildContext context, List<Key> candidateData,
       Widget draggable, Widget content, Key contentKey) {
     if (candidateData.isNotEmpty) {
-      final candidateKey = candidateData[0];
-      return ElementInfoTracker(
-        parentKey: _scrollViewKey,
-        selfKey: contentKey,
-        otherKey: candidateKey,
-        builder: (_, selfInfo, candidateInfo) {
-          print('self pos: ${selfInfo.position}');
-          print('candidate pos: ${candidateInfo.position}');
+      return ValueListenableBuilder(
+        valueListenable: _DragPosition.of(context),
+        builder: (context, position, child) {
+          print(
+              'target: ${_DropTarget.of(context).position}, ${_DropTarget.of(context).height}');
+          print(
+              'candidate: ${_DragPosition.of(context).value}, ${_DropCandidate.of(context).height}');
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              SizedBox(height: candidateInfo.size.height),
-              content,
+              SizedBox(height: _DropCandidate.of(context).height),
+              child,
             ],
           );
         },
+        child: content,
       );
     }
 
@@ -327,31 +332,6 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
         emptyPlaceholder,
         draggable,
       ],
-    );
-  }
-}
-
-class _RowDragHandle extends StatelessWidget {
-  final int row;
-
-  const _RowDragHandle({
-    Key key,
-    @required this.row,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if (row == 0) {
-      return const SizedBox(width: _rowIndicatorWidth);
-    }
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: _rowIndicatorWidth,
-        alignment: Alignment.topCenter,
-        padding: _padding,
-        child: Text('•', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
     );
   }
 }
@@ -398,6 +378,31 @@ class _CellState extends State<_Cell> {
           TableSizeBloc.of(context)
               .notifyCellTextChanged(widget.row, widget.col, text);
         },
+      ),
+    );
+  }
+}
+
+class _RowDragHandle extends StatelessWidget {
+  final int row;
+
+  const _RowDragHandle({
+    Key key,
+    @required this.row,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (row == 0) {
+      return const SizedBox(width: _rowIndicatorWidth);
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _rowIndicatorWidth,
+        alignment: Alignment.topCenter,
+        padding: _padding,
+        child: Text('•', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }
