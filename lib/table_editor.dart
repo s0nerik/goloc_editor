@@ -12,6 +12,7 @@ import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
 import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:provider/provider.dart';
+import 'package:vsync_provider/vsync_provider.dart';
 
 const double _cellWidth = 128;
 const double _rowIndicatorWidth = 32;
@@ -285,28 +286,34 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       child: content,
     );
 
-    return drag.DragTarget<Key>(
-      onWillAccept: (candidateKey) {
-        final result = key != candidateKey;
-        if (result) {
-          _DropTarget.of(context).setKey(_scrollViewKey.currentContext, key);
-          _DropCandidate.of(context)
-              .setKey(_scrollViewKey.currentContext, candidateKey);
-        }
-        return result;
-      },
-      onAccept: (row) {
-        print('onAccept: $row');
-      },
-      builder: (BuildContext context, List<Key> candidateData, _) =>
-          _dragTargetBuilder(context, candidateData, draggable, content, key),
+    return VsyncProvider(
+      isSingleTicker: false,
+      child: drag.DragTarget<Key>(
+        onWillAccept: (candidateKey) {
+          final result = key != candidateKey;
+          if (result) {
+            _DropTarget.of(context).setKey(_scrollViewKey.currentContext, key);
+            _DropCandidate.of(context)
+                .setKey(_scrollViewKey.currentContext, candidateKey);
+          }
+          return result;
+        },
+        onAccept: (row) {
+          print('onAccept: $row');
+        },
+        builder: (BuildContext context, List<Key> candidateData, _) =>
+            _dragTargetBuilder(context, candidateData, draggable, content, key),
+      ),
     );
   }
 
   Widget _dragTargetBuilder(BuildContext context, List<Key> candidateData,
       Widget draggable, Widget content, Key contentKey) {
+    const duration = Duration(milliseconds: 100);
+
+    Widget child;
     if (candidateData.isNotEmpty) {
-      return ValueListenableBuilder(
+      child = ValueListenableBuilder(
         valueListenable: _DragPosition.of(context),
         builder: (context, position, child) {
           final targetPos = _DropTarget.of(context).position;
@@ -321,27 +328,39 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              isCandidateAbove
-                  ? SizedBox(height: candidateHeight)
-                  : const SizedBox.shrink(),
+              AnimatedSize(
+                duration: duration,
+                vsync: VsyncProvider.of(context),
+                child: isCandidateAbove
+                    ? SizedBox(height: candidateHeight)
+                    : const SizedBox.shrink(),
+              ),
               child,
-              !isCandidateAbove
-                  ? SizedBox(height: candidateHeight)
-                  : const SizedBox.shrink(),
+              AnimatedSize(
+                duration: duration,
+                vsync: VsyncProvider.of(context),
+                child: !isCandidateAbove
+                    ? SizedBox(height: candidateHeight)
+                    : const SizedBox.shrink(),
+              ),
             ],
           );
         },
         child: content,
       );
+    } else {
+      child = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          draggable,
+        ],
+      );
     }
 
-    const emptyPlaceholder = SizedBox.shrink();
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        emptyPlaceholder,
-        draggable,
-      ],
+    return AnimatedSize(
+      vsync: VsyncProvider.of(context),
+      duration: const Duration(milliseconds: 100),
+      child: child,
     );
   }
 }
