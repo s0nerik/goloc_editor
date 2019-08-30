@@ -309,15 +309,25 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       return ValueListenableBuilder(
         valueListenable: _DragPosition.of(context),
         builder: (context, position, child) {
-          print(
-              'target: ${_DropTarget.of(context).position}, ${_DropTarget.of(context).height}');
-          print(
-              'candidate: ${_DragPosition.of(context).value}, ${_DropCandidate.of(context).height}');
+          final targetPos = _DropTarget.of(context).position;
+          final targetHeight = _DropTarget.of(context).height;
+
+          final candidatePos = _DragPosition.of(context).value;
+          final candidateHeight = _DropCandidate.of(context).height;
+
+          final isCandidateAbove =
+              targetPos.dy + candidateHeight / 2 > candidatePos.dy;
+
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              SizedBox(height: _DropCandidate.of(context).height),
+              isCandidateAbove
+                  ? SizedBox(height: candidateHeight)
+                  : const SizedBox.shrink(),
               child,
+              !isCandidateAbove
+                  ? SizedBox(height: candidateHeight)
+                  : const SizedBox.shrink(),
             ],
           );
         },
