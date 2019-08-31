@@ -396,11 +396,11 @@ class _DraggableState<T> extends State<Draggable<T>> {
       feedback: widget.feedback,
       feedbackOffset: widget.feedbackOffset,
       ignoringFeedbackSemantics: widget.ignoringFeedbackSemantics,
-      onDragPositionChanged: (details) {
+      onDragPositionChanged: (delta, offset) {
         if (mounted && widget.onDragPositionChanged != null) {
           widget.onDragPositionChanged(DraggableDetails(
-            velocity: Velocity(pixelsPerSecond: details.delta),
-            offset: details.globalPosition,
+            velocity: Velocity(pixelsPerSecond: delta),
+            offset: offset,
           ));
         }
       },
@@ -583,7 +583,7 @@ enum _DragEndKind { dropped, canceled }
 typedef _OnDragEnd = void Function(
     Velocity velocity, Offset offset, bool wasAccepted);
 
-typedef _OnDragPositionChanged = void Function(DragUpdateDetails details);
+typedef _OnDragPositionChanged = void Function(Offset delta, Offset offset);
 
 // The lifetime of this object is a little dubious right now. Specifically, it
 // lives as long as the pointer is down. Arguably it should self-immolate if the
@@ -631,7 +631,8 @@ class _DragAvatar<T> extends Drag {
   void update(DragUpdateDetails details) {
     _position += _restrictAxis(details.delta);
     updateDrag(_position);
-    if (onDragPositionChanged != null) onDragPositionChanged(details);
+    if (onDragPositionChanged != null)
+      onDragPositionChanged(details.delta, details.globalPosition);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
@@ -31,8 +32,10 @@ class _DragPosition extends ValueNotifier<Offset> {
       Provider.of(context, listen: false);
 }
 
-class _DropCandidate extends ElementInfoNotifier {
-  static _DropCandidate of(BuildContext context) =>
+class _DropCandidateIndex extends ValueNotifier<int> {
+  _DropCandidateIndex() : super(null);
+
+  static _DropCandidateIndex of(BuildContext context) =>
       Provider.of(context, listen: false);
 }
 
@@ -56,7 +59,7 @@ class TableEditor extends StatelessWidget {
         BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => _TableOffset()),
         ChangeNotifierProvider(builder: (_) => _DragPosition()),
-        ChangeNotifierProvider(builder: (_) => _DropCandidate()),
+        ChangeNotifierProvider(builder: (_) => _DropCandidateIndex()),
         ChangeNotifierProvider(builder: (_) => _DropTarget()),
       ],
       child: _EditorContent(),
@@ -267,12 +270,18 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final draggable = drag.LongPressDraggable<Key>(
       data: key,
       axis: Axis.vertical,
+      onDragStarted: () {
+        _DropTarget.of(context).setKey(_scrollViewKey.currentContext, null);
+        _DropCandidateIndex.of(context).value = key.value;
+      },
       onDragPositionChanged: (details) {
         _DragPosition.of(context).value = details.offset;
       },
       onDragEnd: (_) {
         _DragPosition.of(context).value = Offset.zero;
+        _DropCandidateIndex.of(context).value = null;
       },
+      childWhenDragging: const SizedBox.shrink(),
       maxSimultaneousDrags: 1,
       feedback: Material(
         child: ConstrainedBox(
@@ -293,8 +302,6 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
           final result = key != candidateKey;
           if (result) {
             _DropTarget.of(context).setKey(_scrollViewKey.currentContext, key);
-            _DropCandidate.of(context)
-                .setKey(_scrollViewKey.currentContext, candidateKey);
           }
           return result;
         },
@@ -311,19 +318,32 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       Widget draggable, Widget content, Key contentKey) {
     const duration = Duration(milliseconds: 100);
 
+    final candidateIndex = _DropCandidateIndex.of(context).value;
+    final targetIndex = (contentKey as ValueKey<int>).value;
+
     Widget child;
-    if (candidateData.isNotEmpty) {
+    if (candidateData.isNotEmpty || candidateIndex == targetIndex - 1) {
       child = ValueListenableBuilder(
         valueListenable: _DragPosition.of(context),
         builder: (context, position, child) {
-          final targetPos = _DropTarget.of(context).position;
+          final targetPos = _DropTarget.of(context).position.dy;
           final targetHeight = _DropTarget.of(context).height;
 
-          final candidatePos = _DragPosition.of(context).value;
-          final candidateHeight = _DropCandidate.of(context).height;
+          final candidateIndex = _DropCandidateIndex.of(context).value;
 
-          final isCandidateAbove =
-              targetPos.dy + candidateHeight / 2 > candidatePos.dy;
+          final candidatePos = _DragPosition.of(context).value.dy;
+          final candidateHeight =
+              TableSizeBloc.of(context).rowHeight(candidateIndex);
+
+//          final combinedHeight = targetHeight + candidateHeight;
+//          final h = combinedHeight / 2;
+//          final isCandidateAbove = candidatePos + h < targetPos + h;
+
+          final isCandidateAbove = candidatePos < targetPos + targetHeight;
+
+          print('${candidatePos.toInt()}');
+//          print(
+//              '${candidatePos.toInt()} + ${h.toInt()} < ${targetPos.toInt()} + ${h.toInt()} = $isCandidateAbove');
 
           return Column(
             mainAxisSize: MainAxisSize.min,
