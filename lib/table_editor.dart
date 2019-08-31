@@ -318,69 +318,64 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
       Widget draggable, Widget content, Key contentKey) {
     const duration = Duration(milliseconds: 100);
 
-    final candidateIndex = _DropCandidateIndex.of(context).value;
     final targetIndex = (contentKey as ValueKey<int>).value;
 
-    Widget child;
-    if (candidateData.isNotEmpty || candidateIndex == targetIndex - 1) {
-      child = ValueListenableBuilder(
-        valueListenable: _DragPosition.of(context),
-        builder: (context, position, child) {
-          final targetPos = _DropTarget.of(context).position.dy;
-          final targetHeight = _DropTarget.of(context).height;
+    return ValueListenableBuilder(
+      valueListenable: _DropCandidateIndex.of(context),
+      builder: (context, candidateIndex, _) {
+        if (candidateIndex == null) {
+          return draggable;
+        }
 
-          final candidateIndex = _DropCandidateIndex.of(context).value;
+        return ValueListenableBuilder(
+          valueListenable: _DragPosition.of(context),
+          builder: (context, position, child) {
+            final targetPos = _DropTarget.of(context).position.dy;
+            final targetHeight = _DropTarget.of(context).height;
 
-          final candidatePos = _DragPosition.of(context).value.dy;
-          final candidateHeight =
-              TableSizeBloc.of(context).rowHeight(candidateIndex);
+            final candidateIndex = _DropCandidateIndex.of(context).value;
+
+            final candidatePos = _DragPosition.of(context).value.dy;
+            final candidateHeight = candidateIndex != null
+                ? TableSizeBloc.of(context).rowHeight(candidateIndex)
+                : 0.0;
 
 //          final combinedHeight = targetHeight + candidateHeight;
 //          final h = combinedHeight / 2;
 //          final isCandidateAbove = candidatePos + h < targetPos + h;
 
-          final isCandidateAbove = candidatePos < targetPos + targetHeight;
+            final isCandidateAbove = candidatePos < targetPos + targetHeight;
 
-          print('${candidatePos.toInt()}');
+            print('${candidatePos.toInt()}');
 //          print(
 //              '${candidatePos.toInt()} + ${h.toInt()} < ${targetPos.toInt()} + ${h.toInt()} = $isCandidateAbove');
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              AnimatedSize(
-                duration: duration,
-                vsync: VsyncProvider.of(context),
-                child: isCandidateAbove
-                    ? SizedBox(height: candidateHeight)
-                    : const SizedBox.shrink(),
-              ),
-              child,
-              AnimatedSize(
-                duration: duration,
-                vsync: VsyncProvider.of(context),
-                child: !isCandidateAbove
-                    ? SizedBox(height: candidateHeight)
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          );
-        },
-        child: content,
-      );
-    } else {
-      child = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          draggable,
-        ],
-      );
-    }
-
-    return AnimatedSize(
-      vsync: VsyncProvider.of(context),
-      duration: const Duration(milliseconds: 100),
-      child: child,
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                AnimatedSize(
+                  duration: duration,
+                  vsync: VsyncProvider.of(context),
+                  child: isCandidateAbove
+                      ? SizedBox(height: candidateHeight)
+                      : const SizedBox.shrink(),
+                ),
+                child,
+                AnimatedSize(
+                  duration: duration,
+                  vsync: VsyncProvider.of(context),
+                  child: !isCandidateAbove
+                      ? SizedBox(height: candidateHeight)
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            );
+          },
+          child: candidateData.isNotEmpty || candidateIndex == targetIndex - 1
+              ? content
+              : draggable,
+        );
+      },
     );
   }
 }
