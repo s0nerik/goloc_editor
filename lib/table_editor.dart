@@ -23,6 +23,9 @@ final _scrollViewKey = GlobalKey(debugLabel: '_scrollViewKey');
 
 class _TableHorizontalPosition extends ValueNotifier<double> {
   _TableHorizontalPosition() : super(0);
+
+  static _TableHorizontalPosition of(BuildContext context) =>
+      Provider.of(context, listen: false);
 }
 
 class _DragPosition extends ValueNotifier<Offset> {
@@ -203,8 +206,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tableOffset =
-        Provider.of<_TableHorizontalPosition>(context, listen: false);
+    _tableOffset = _TableHorizontalPosition.of(context);
     _tableOffset.addListener(_updateWithOffset);
     _ctrl = ScrollController(
         initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
