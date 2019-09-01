@@ -156,64 +156,91 @@ Widget _buildDraggable(
 
 Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
     Widget draggable, Widget content, ValueKey<int> key) {
-  const duration = Duration(milliseconds: 100);
-
-  final targetIndex = key.value;
-
-  return ValueListenableBuilder(
-    valueListenable: DropCandidateIndex.of(context),
-    builder: (context, int candidateIndex, _) {
-      return ValueListenableBuilder(
-        valueListenable: DragPosition.of(context),
-        builder: (context, position, child) {
-          final candidateIndex = DropCandidateIndex.of(context).value;
-
-          if (candidateIndex == null ||
-              (candidateIndex - targetIndex).abs() > 2) {
-            return child;
-          }
-
-          final targetPos = DropTarget.of(context).position.dy;
-          final targetHeight = DropTarget.of(context).height;
-
-          final candidatePos = DragPosition.of(context).value.dy;
-          double candidateHeight = candidateIndex != null
-              ? TableSizeBloc.of(context).rowHeight(candidateIndex)
-              : 0.0;
-
-//          if (candidateIndex == targetIndex) {
-//            candidateHeight = 0.0;
-//          }
-
-//          final combinedHeight = targetHeight + candidateHeight;
-//          final h = combinedHeight / 2;
-//          final isCandidateAbove = candidatePos + h < targetPos + h;
-
-          final isCandidateAbove = candidatePos < targetPos + targetHeight;
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              AnimatedSize(
-                duration: duration,
-                vsync: VsyncProvider.of(context),
-                child: isCandidateAbove
-                    ? SizedBox(height: candidateHeight)
-                    : const SizedBox.shrink(),
-              ),
-              child,
-              AnimatedSize(
-                duration: duration,
-                vsync: VsyncProvider.of(context),
-                child: !isCandidateAbove
-                    ? SizedBox(height: candidateHeight)
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          );
-        },
-        child: candidateData.isNotEmpty ? content : draggable,
-      );
-    },
+  return _DragTarget(
+    index: key.value,
+    candidateIndex: candidateData.isNotEmpty
+        ? (candidateData[0] as ValueKey<int>).value
+        : null,
+    child: candidateData.isNotEmpty ? content : draggable,
   );
+}
+
+class _DragTarget extends StatefulWidget {
+  final int index;
+  final int candidateIndex;
+  final Widget child;
+
+  const _DragTarget({
+    Key key,
+    @required this.index,
+    @required this.candidateIndex,
+    @required this.child,
+  }) : super(key: key);
+
+  @override
+  _DragTargetState createState() => _DragTargetState();
+}
+
+class _DragTargetState extends State<_DragTarget> {
+  static const duration = Duration(milliseconds: 100);
+
+  DropCandidateIndex _candidateIndex;
+  DragPosition _dragPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _candidateIndex = DropCandidateIndex.of(context)..addListener(_update);
+    _dragPosition = DragPosition.of(context)..addListener(_update);
+  }
+
+  @override
+  void dispose() {
+    _candidateIndex.removeListener(_update);
+    _dragPosition.removeListener(_update);
+    super.dispose();
+  }
+
+  void _update() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final candidateIndex = _candidateIndex.value;
+
+    final isCandidate = widget.candidateIndex == candidateIndex;
+    if (!isCandidate) {
+      return widget.child;
+    }
+
+    final targetPos = DropTarget.of(context).position.dy;
+    final targetHeight = DropTarget.of(context).height;
+
+    final candidatePos = DragPosition.of(context).value.dy;
+    final candidateHeight = candidateIndex != null
+        ? TableSizeBloc.of(context).rowHeight(candidateIndex)
+        : 0.0;
+
+    final isCandidateAbove = candidatePos < targetPos + targetHeight;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        AnimatedSize(
+          duration: duration,
+          vsync: VsyncProvider.of(context),
+          child: isCandidateAbove
+              ? SizedBox(height: candidateHeight)
+              : const SizedBox.shrink(),
+        ),
+        widget.child,
+        AnimatedSize(
+          duration: duration,
+          vsync: VsyncProvider.of(context),
+          child: !isCandidateAbove
+              ? SizedBox(height: candidateHeight)
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
 }
