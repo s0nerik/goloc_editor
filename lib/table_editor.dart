@@ -21,8 +21,8 @@ const _padding = const EdgeInsets.all(8.0);
 
 final _scrollViewKey = GlobalKey(debugLabel: '_scrollViewKey');
 
-class _TableOffset extends ValueNotifier<double> {
-  _TableOffset() : super(0);
+class _TableHorizontalPosition extends ValueNotifier<double> {
+  _TableHorizontalPosition() : super(0);
 }
 
 class _DragPosition extends ValueNotifier<Offset> {
@@ -57,7 +57,7 @@ class TableEditor extends StatelessWidget {
     return MultiProvider(
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
-        ChangeNotifierProvider(builder: (_) => _TableOffset()),
+        ChangeNotifierProvider(builder: (_) => _TableHorizontalPosition()),
         ChangeNotifierProvider(builder: (_) => _DragPosition()),
         ChangeNotifierProvider(builder: (_) => _DropCandidateIndex()),
         ChangeNotifierProvider(builder: (_) => _DropTarget()),
@@ -195,7 +195,7 @@ class _Row extends StatefulWidget {
 
 class _RowState extends State<_Row> with TickerProviderStateMixin {
   ScrollController _ctrl;
-  _TableOffset _tableOffset;
+  _TableHorizontalPosition _tableOffset;
 
   StreamSubscription _heightSub;
   StreamSubscription _colsSub;
@@ -203,7 +203,8 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _tableOffset = Provider.of<_TableOffset>(context, listen: false);
+    _tableOffset =
+        Provider.of<_TableHorizontalPosition>(context, listen: false);
     _tableOffset.addListener(_updateWithOffset);
     _ctrl = ScrollController(
         initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
