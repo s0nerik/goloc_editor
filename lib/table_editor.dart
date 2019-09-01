@@ -243,6 +243,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     final cols = DocumentBloc.of(context).cols;
 
     final key = ValueKey(widget.i);
+    print('build: ${widget.i}');
 
     final content = Container(
       key: key,
@@ -323,17 +324,18 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
     return ValueListenableBuilder(
       valueListenable: _DropCandidateIndex.of(context),
       builder: (context, candidateIndex, _) {
-        if (candidateIndex == null) {
-          return draggable;
-        }
-
         return ValueListenableBuilder(
           valueListenable: _DragPosition.of(context),
           builder: (context, position, child) {
+            final candidateIndex = _DropCandidateIndex.of(context).value;
+
+            if (candidateIndex == null ||
+                (candidateIndex - targetIndex).abs() > 1) {
+              return draggable;
+            }
+
             final targetPos = _DropTarget.of(context).position.dy;
             final targetHeight = _DropTarget.of(context).height;
-
-            final candidateIndex = _DropCandidateIndex.of(context).value;
 
             final candidatePos = _DragPosition.of(context).value.dy;
             final candidateHeight = candidateIndex != null
@@ -346,9 +348,7 @@ class _RowState extends State<_Row> with TickerProviderStateMixin {
 
             final isCandidateAbove = candidatePos < targetPos + targetHeight;
 
-            print('${candidatePos.toInt()}');
-//          print(
-//              '${candidatePos.toInt()} + ${h.toInt()} < ${targetPos.toInt()} + ${h.toInt()} = $isCandidateAbove');
+            print('ValueListenableBuilder: $targetIndex');
 
             return Column(
               mainAxisSize: MainAxisSize.min,
