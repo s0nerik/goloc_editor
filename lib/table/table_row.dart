@@ -73,56 +73,9 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
     final key = ValueKey(widget.i);
     print('build: ${widget.i}');
 
-    final content = Container(
-      key: key,
-      color: widget.i % 2 == 1 ? Colors.transparent : Colors.black12,
-      child: SizedBox(
-        height: height,
-        child: Row(
-          children: <Widget>[
-            DragHandle(row: widget.i),
-            const VerticalDivider(width: 1),
-            Expanded(
-              child: ListView.separated(
-                controller: _ctrl,
-                itemCount: cols,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, j) => TCell(row: widget.i, col: j),
-                separatorBuilder: (_, __) => const VerticalDivider(width: 1),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    final content = _buildContent(context, key, height, _ctrl, cols);
 
-    final draggable = drag.LongPressDraggable<Key>(
-      data: key,
-      axis: Axis.vertical,
-      onDragStarted: () {
-        DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
-        DropCandidateIndex.of(context).value = key.value;
-      },
-      onDragPositionChanged: (details) {
-        DragPosition.of(context).value = details.offset;
-      },
-      onDragEnd: (_) {
-        DragPosition.of(context).value = Offset.zero;
-        DropCandidateIndex.of(context).value = null;
-      },
-      childWhenDragging: const SizedBox.shrink(),
-      maxSimultaneousDrags: 1,
-      feedback: Material(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width,
-          ),
-          child: content,
-        ),
-        elevation: 4.0,
-      ),
-      child: content,
-    );
+    final draggable = _buildDraggable(context, key, content, height);
 
     return VsyncProvider(
       isSingleTicker: false,
@@ -138,72 +91,129 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
           print('onAccept: $row');
         },
         builder: (BuildContext context, List<Key> candidateData, _) =>
-            _dragTargetBuilder(context, candidateData, draggable, content, key),
+            _buildDragTarget(context, candidateData, draggable, content, key),
       ),
     );
   }
+}
 
-  Widget _dragTargetBuilder(BuildContext context, List<Key> candidateData,
-      Widget draggable, Widget content, Key contentKey) {
-    const duration = Duration(milliseconds: 100);
+Widget _buildContent(BuildContext context, ValueKey<int> key, double height,
+    ScrollController ctrl, int cols) {
+  return Container(
+    key: key,
+    color: key.value % 2 == 1 ? Colors.transparent : Colors.black12,
+    child: SizedBox(
+      height: height,
+      child: Row(
+        children: <Widget>[
+          DragHandle(row: key.value),
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: ListView.separated(
+              controller: ctrl,
+              itemCount: cols,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, j) => TCell(row: key.value, col: j),
+              separatorBuilder: (_, __) => const VerticalDivider(width: 1),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
-    final targetIndex = (contentKey as ValueKey<int>).value;
+Widget _buildDraggable(
+    BuildContext context, ValueKey<int> key, Widget content, double height) {
+  return drag.LongPressDraggable<Key>(
+    data: key,
+    axis: Axis.vertical,
+    onDragStarted: () {
+      DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
+      DropCandidateIndex.of(context).value = key.value;
+    },
+    onDragPositionChanged: (details) {
+      DragPosition.of(context).value = details.offset;
+    },
+    onDragEnd: (_) {
+      DragPosition.of(context).value = Offset.zero;
+      DropCandidateIndex.of(context).value = null;
+    },
+    childWhenDragging: SizedBox(height: height),
+    maxSimultaneousDrags: 1,
+    feedback: Material(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width,
+        ),
+        child: content,
+      ),
+      elevation: 4.0,
+    ),
+    child: content,
+  );
+}
 
-    return ValueListenableBuilder(
-      valueListenable: DropCandidateIndex.of(context),
-      builder: (context, candidateIndex, _) {
-        return ValueListenableBuilder(
-          valueListenable: DragPosition.of(context),
-          builder: (context, position, child) {
-            final candidateIndex = DropCandidateIndex.of(context).value;
+Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
+    Widget draggable, Widget content, ValueKey<int> key) {
+  const duration = Duration(milliseconds: 100);
 
-            if (candidateIndex == null ||
-                (candidateIndex - targetIndex).abs() > 1) {
-              return draggable;
-            }
+  final targetIndex = key.value;
 
-            final targetPos = DropTarget.of(context).position.dy;
-            final targetHeight = DropTarget.of(context).height;
+  return ValueListenableBuilder(
+    valueListenable: DropCandidateIndex.of(context),
+    builder: (context, int candidateIndex, _) {
+      return ValueListenableBuilder(
+        valueListenable: DragPosition.of(context),
+        builder: (context, position, child) {
+          final candidateIndex = DropCandidateIndex.of(context).value;
 
-            final candidatePos = DragPosition.of(context).value.dy;
-            final candidateHeight = candidateIndex != null
-                ? TableSizeBloc.of(context).rowHeight(candidateIndex)
-                : 0.0;
+          if (candidateIndex == null ||
+              (candidateIndex - targetIndex).abs() > 2) {
+            return child;
+          }
+
+          final targetPos = DropTarget.of(context).position.dy;
+          final targetHeight = DropTarget.of(context).height;
+
+          final candidatePos = DragPosition.of(context).value.dy;
+          double candidateHeight = candidateIndex != null
+              ? TableSizeBloc.of(context).rowHeight(candidateIndex)
+              : 0.0;
+
+//          if (candidateIndex == targetIndex) {
+//            candidateHeight = 0.0;
+//          }
 
 //          final combinedHeight = targetHeight + candidateHeight;
 //          final h = combinedHeight / 2;
 //          final isCandidateAbove = candidatePos + h < targetPos + h;
 
-            final isCandidateAbove = candidatePos < targetPos + targetHeight;
+          final isCandidateAbove = candidatePos < targetPos + targetHeight;
 
-            print('ValueListenableBuilder: $targetIndex');
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                AnimatedSize(
-                  duration: duration,
-                  vsync: VsyncProvider.of(context),
-                  child: isCandidateAbove
-                      ? SizedBox(height: candidateHeight)
-                      : const SizedBox.shrink(),
-                ),
-                child,
-                AnimatedSize(
-                  duration: duration,
-                  vsync: VsyncProvider.of(context),
-                  child: !isCandidateAbove
-                      ? SizedBox(height: candidateHeight)
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            );
-          },
-          child: candidateData.isNotEmpty || candidateIndex == targetIndex - 1
-              ? content
-              : draggable,
-        );
-      },
-    );
-  }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              AnimatedSize(
+                duration: duration,
+                vsync: VsyncProvider.of(context),
+                child: isCandidateAbove
+                    ? SizedBox(height: candidateHeight)
+                    : const SizedBox.shrink(),
+              ),
+              child,
+              AnimatedSize(
+                duration: duration,
+                vsync: VsyncProvider.of(context),
+                child: !isCandidateAbove
+                    ? SizedBox(height: candidateHeight)
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          );
+        },
+        child: candidateData.isNotEmpty ? content : draggable,
+      );
+    },
+  );
 }
