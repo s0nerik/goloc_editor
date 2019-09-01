@@ -139,7 +139,7 @@ Widget _buildDraggable(
       DragPosition.of(context).value = Offset.zero;
       DropCandidateIndex.of(context).value = null;
     },
-    childWhenDragging: SizedBox(height: height),
+    childWhenDragging: SizedBox.shrink(),
     maxSimultaneousDrags: 1,
     feedback: Material(
       child: ConstrainedBox(
@@ -205,42 +205,23 @@ class _DragTargetState extends State<_DragTarget> {
 
   @override
   Widget build(BuildContext context) {
-    final candidateIndex = _candidateIndex.value;
-
-    final isCandidate = widget.candidateIndex == candidateIndex;
-    if (!isCandidate) {
-      return widget.child;
-    }
-
-    final targetPos = DropTarget.of(context).position.dy;
-    final targetHeight = DropTarget.of(context).height;
-
-    final candidatePos = DragPosition.of(context).value.dy;
-    final candidateHeight = candidateIndex != null
-        ? TableSizeBloc.of(context).rowHeight(candidateIndex)
+    final candidateHeight = widget.candidateIndex != null
+        ? TableSizeBloc.of(context).rowHeight(widget.candidateIndex)
         : 0.0;
 
-    final isCandidateAbove = candidatePos < targetPos + targetHeight;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        AnimatedSize(
-          duration: duration,
-          vsync: VsyncProvider.of(context),
-          child: isCandidateAbove
+    return AnimatedSize(
+      duration: duration,
+      vsync: VsyncProvider.of(context),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          widget.candidateIndex != null
               ? SizedBox(height: candidateHeight)
               : const SizedBox.shrink(),
-        ),
-        widget.child,
-        AnimatedSize(
-          duration: duration,
-          vsync: VsyncProvider.of(context),
-          child: !isCandidateAbove
-              ? SizedBox(height: candidateHeight)
-              : const SizedBox.shrink(),
-        ),
-      ],
+          widget.child,
+        ],
+      ),
     );
   }
 }
