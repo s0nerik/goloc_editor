@@ -158,7 +158,7 @@ Widget _buildDraggable(
 Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
     Widget draggable, Widget content, ValueKey<int> key) {
   return _DragTarget(
-    index: key.value,
+    contentKey: key,
     candidateIndex: candidateData.isNotEmpty
         ? (candidateData[0] as ValueKey<int>).value
         : null,
@@ -167,13 +167,13 @@ Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
 }
 
 class _DragTarget extends StatefulWidget {
-  final int index;
+  final ValueKey<int> contentKey;
   final int candidateIndex;
   final Widget child;
 
   const _DragTarget({
     Key key,
-    @required this.index,
+    @required this.contentKey,
     @required this.candidateIndex,
     @required this.child,
   }) : super(key: key);
@@ -187,18 +187,21 @@ class _DragTargetState extends State<_DragTarget> {
 
   DropCandidateIndex _candidateIndex;
   DragPosition _dragPosition;
+  DropTarget _dropTarget;
 
   @override
   void initState() {
     super.initState();
     _candidateIndex = DropCandidateIndex.of(context)..addListener(_update);
     _dragPosition = DragPosition.of(context)..addListener(_update);
+    _dropTarget = DropTarget.of(context)..addListener(_update);
   }
 
   @override
   void dispose() {
     _candidateIndex.removeListener(_update);
     _dragPosition.removeListener(_update);
+    _dropTarget.removeListener(_update);
     super.dispose();
   }
 
@@ -217,9 +220,10 @@ class _DragTargetState extends State<_DragTarget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-//          widget.candidateIndex != null
-//              ? SizedBox(height: candidateHeight)
-//              : const SizedBox.shrink(),
+          _dropTarget.value?.widget?.key == widget.contentKey &&
+                  widget.candidateIndex != null
+              ? SizedBox(height: candidateHeight)
+              : const SizedBox.shrink(),
           widget.child,
         ],
       ),
