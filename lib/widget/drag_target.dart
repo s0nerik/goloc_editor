@@ -698,14 +698,12 @@ class _DragAvatar<T> extends Drag {
         }
       }
     }
-
-    debugPrintSynchronously('targets entered: $_enteredTargets');
-    debugPrintSynchronously('targets (hit)     : $targets');
+    if (targets.length > _enteredTargets.length) {
+      listsMatch = false;
+    }
 
     // If everything's the same, bail early.
     if (listsMatch) return;
-
-    debugPrintSynchronously('targets (!match): $targets');
 
     // Leave old targets.
     _leaveAllEntered();

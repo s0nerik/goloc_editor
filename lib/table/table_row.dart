@@ -81,14 +81,15 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
       child: drag.DragTarget<Key>(
         key: key,
         onWillAccept: (candidateKey) {
+          print('onWillAccept[${key.value}]: $candidateKey');
           final result = key != candidateKey;
           if (result) {
             DropTarget.of(context).setKey(scrollViewKey.currentContext, key);
           }
-          return true;
+          return result;
         },
         onAccept: (row) {
-          print('onAccept: $row');
+          print('onAccept[${key.value}]: $row');
         },
         builder: (BuildContext context, List<Key> candidateData, _) =>
             _buildDragTarget(context, candidateData, draggable, content, key),
