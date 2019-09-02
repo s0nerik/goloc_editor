@@ -71,7 +71,6 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
     final cols = DocumentBloc.of(context).cols;
 
     final key = ValueKey(widget.i);
-    print('build: ${widget.i}');
 
     final content = _buildContent(context, key, height, _ctrl, cols);
 
@@ -80,12 +79,13 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
     return VsyncProvider(
       isSingleTicker: false,
       child: drag.DragTarget<Key>(
+        key: key,
         onWillAccept: (candidateKey) {
           final result = key != candidateKey;
           if (result) {
             DropTarget.of(context).setKey(scrollViewKey.currentContext, key);
           }
-          return result;
+          return true;
         },
         onAccept: (row) {
           print('onAccept: $row');
@@ -139,7 +139,7 @@ Widget _buildDraggable(
       DragPosition.of(context).value = Offset.zero;
       DropCandidateIndex.of(context).value = null;
     },
-    childWhenDragging: SizedBox.shrink(),
+//    childWhenDragging: SizedBox.shrink(),
     maxSimultaneousDrags: 1,
     feedback: Material(
       child: ConstrainedBox(
@@ -216,9 +216,9 @@ class _DragTargetState extends State<_DragTarget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          widget.candidateIndex != null
-              ? SizedBox(height: candidateHeight)
-              : const SizedBox.shrink(),
+//          widget.candidateIndex != null
+//              ? SizedBox(height: candidateHeight)
+//              : const SizedBox.shrink(),
           widget.child,
         ],
       ),

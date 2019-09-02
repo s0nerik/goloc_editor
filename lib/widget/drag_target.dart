@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -375,10 +376,17 @@ class _DraggableState<T> extends State<Draggable<T>> {
     if (widget.maxSimultaneousDrags != null &&
         _activeCount >= widget.maxSimultaneousDrags) return null;
     Offset dragStartPoint;
+    Size draggedSize;
+    Offset pointerOffset;
     switch (widget.dragAnchor) {
       case DragAnchor.child:
         final RenderBox renderObject = context.findRenderObject();
+
+        final topLeft = renderObject.localToGlobal(Offset.zero);
+        pointerOffset = position - topLeft;
+
         dragStartPoint = renderObject.globalToLocal(position);
+        draggedSize = renderObject.size;
         break;
       case DragAnchor.pointer:
         dragStartPoint = Offset.zero;
@@ -396,6 +404,8 @@ class _DraggableState<T> extends State<Draggable<T>> {
       feedback: widget.feedback,
       feedbackOffset: widget.feedbackOffset,
       ignoringFeedbackSemantics: widget.ignoringFeedbackSemantics,
+      size: draggedSize ?? Size.zero,
+      pointerOffset: pointerOffset ?? Offset.zero,
       onDragPositionChanged: (delta, offset) {
         if (mounted && widget.onDragPositionChanged != null) {
           widget.onDragPositionChanged(DraggableDetails(
@@ -577,6 +587,18 @@ class _DragTargetState<T> extends State<DragTarget<T>> {
           _mapAvatarsToData<dynamic>(_rejectedAvatars)),
     );
   }
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
+    if (widget.key != null) {
+      if (widget.key is ValueKey) {
+        return '${(widget.key as ValueKey).value}';
+      } else {
+        return '${widget.key}';
+      }
+    }
+    return super.toString(minLevel: minLevel);
+  }
 }
 
 enum _DragEndKind { dropped, canceled }
@@ -601,6 +623,8 @@ class _DragAvatar<T> extends Drag {
     this.onDragEnd,
     this.onDragPositionChanged,
     @required this.ignoringFeedbackSemantics,
+    this.size,
+    this.pointerOffset,
   })  : assert(overlayState != null),
         assert(ignoringFeedbackSemantics != null),
         assert(dragStartPoint != null),
@@ -620,6 +644,8 @@ class _DragAvatar<T> extends Drag {
   final _OnDragPositionChanged onDragPositionChanged;
   final OverlayState overlayState;
   final bool ignoringFeedbackSemantics;
+  final Size size;
+  final Offset pointerOffset;
 
   _DragTargetState<T> _activeTarget;
   final List<_DragTargetState<T>> _enteredTargets = <_DragTargetState<T>>[];
@@ -649,7 +675,12 @@ class _DragAvatar<T> extends Drag {
     _lastOffset = globalPosition - dragStartPoint;
     _entry.markNeedsBuild();
     final HitTestResult result = HitTestResult();
-    WidgetsBinding.instance.hitTest(result, globalPosition + feedbackOffset);
+    WidgetsBinding.instance
+        .hitTest(result, globalPosition - pointerOffset + feedbackOffset);
+    WidgetsBinding.instance.hitTest(
+      result,
+      globalPosition - pointerOffset + feedbackOffset + Offset(0, size.height),
+    );
 
     final List<_DragTargetState<T>> targets =
         _getDragTargets(result.path).toList();
@@ -668,8 +699,13 @@ class _DragAvatar<T> extends Drag {
       }
     }
 
+    debugPrintSynchronously('targets entered: $_enteredTargets');
+    debugPrintSynchronously('targets (hit)     : $targets');
+
     // If everything's the same, bail early.
     if (listsMatch) return;
+
+    debugPrintSynchronously('targets (!match): $targets');
 
     // Leave old targets.
     _leaveAllEntered();
