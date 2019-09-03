@@ -220,8 +220,7 @@ class _DragTargetState extends State<_DragTarget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _dropTarget.value?.widget?.key == widget.contentKey &&
-                  widget.candidateIndex != null
+          widget.candidateIndex != null
               ? SizedBox(height: candidateHeight)
               : const SizedBox.shrink(),
           widget.child,

@@ -675,8 +675,8 @@ class _DragAvatar<T> extends Drag {
     _lastOffset = globalPosition - dragStartPoint;
     _entry.markNeedsBuild();
     final HitTestResult result = HitTestResult();
-    WidgetsBinding.instance
-        .hitTest(result, globalPosition - pointerOffset + feedbackOffset);
+//    WidgetsBinding.instance
+//        .hitTest(result, globalPosition - pointerOffset + feedbackOffset);
     WidgetsBinding.instance.hitTest(
       result,
       globalPosition - pointerOffset + feedbackOffset + Offset(0, size.height),
@@ -705,17 +705,57 @@ class _DragAvatar<T> extends Drag {
     // If everything's the same, bail early.
     if (listsMatch) return;
 
+//    // Leave old targets.
+//    _leaveAllEntered();
+//
+//    // Enter new targets.
+//    final _DragTargetState<T> newTarget = targets.firstWhere(
+//      (_DragTargetState<T> target) {
+//        _enteredTargets.add(target);
+//        return target.didEnter(this);
+//      },
+//      orElse: () => null,
+//    );
+
     // Leave old targets.
-    _leaveAllEntered();
+//    final oldEnteredTargets = List<_DragTargetState<T>>.from(_enteredTargets);
+    _leaveAllEntered(); // TODO: leave only the targets that are not longer hit
 
     // Enter new targets.
-    final _DragTargetState<T> newTarget = targets.firstWhere(
+    _DragTargetState<T> newTarget = targets.firstWhere(
       (_DragTargetState<T> target) {
         _enteredTargets.add(target);
         return target.didEnter(this);
       },
       orElse: () => null,
     );
+
+//    if (oldEnteredTargets.contains(newTarget)) {
+//      newTarget = targets.skip(_enteredTargets.length).firstWhere(
+//        (target) {
+//          _enteredTargets.add(target);
+//          return target.didEnter(this);
+//        },
+//        orElse: () => newTarget,
+//      );
+//    }
+
+//    _DragTargetState<T> backupTarget;
+//    _DragTargetState<T> newTarget;
+//    for (final target in targets) {
+//      _enteredTargets.add(target);
+//      if (target.didEnter(this)) {
+//        if (oldEnteredTargets.contains(target)) {
+//          backupTarget = target;
+//        } else {
+//          newTarget = target;
+//          break;
+//        }
+//      }
+//    }
+//    if (newTarget == null && backupTarget != null) {
+//      newTarget = backupTarget;
+//    }
 
     _activeTarget = newTarget;
   }
@@ -727,8 +767,15 @@ class _DragAvatar<T> extends Drag {
     for (HitTestEntry entry in path) {
       if (entry.target is RenderMetaData) {
         final RenderMetaData renderMetaData = entry.target;
-        if (renderMetaData.metaData is _DragTargetState<T>)
+        if (renderMetaData.metaData is _DragTargetState<T>) {
+          if (entry.target is RenderBox) {
+            final RenderBox renderBox = entry.target;
+            final pos = renderBox.localToGlobal(Offset.zero);
+            final size = renderBox.size;
+            print('BOX ${pos}::${size}');
+          }
           yield renderMetaData.metaData;
+        }
       }
     }
   }
