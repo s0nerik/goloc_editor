@@ -23,10 +23,10 @@ class DragPosition extends ValueNotifier<Offset> {
       Provider.of(context, listen: false);
 }
 
-class DropCandidateIndex extends ValueNotifier<int> {
-  DropCandidateIndex() : super(null);
+class DraggedRow extends ValueNotifier<int> {
+  DraggedRow() : super(null);
 
-  static DropCandidateIndex of(BuildContext context) =>
+  static DraggedRow of(BuildContext context) =>
       Provider.of(context, listen: false);
 }
 

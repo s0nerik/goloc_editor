@@ -132,14 +132,14 @@ Widget _buildDraggable(
     axis: Axis.vertical,
     onDragStarted: () {
       DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
-      DropCandidateIndex.of(context).value = key.value;
+      DraggedRow.of(context).value = key.value;
     },
     onDragPositionChanged: (details) {
       DragPosition.of(context).value = details.offset;
     },
     onDragEnd: (_) {
       DragPosition.of(context).value = Offset.zero;
-      DropCandidateIndex.of(context).value = null;
+      DraggedRow.of(context).value = null;
     },
 //    childWhenDragging: SizedBox.shrink(),
     maxSimultaneousDrags: 1,
@@ -185,25 +185,6 @@ class _DragTarget extends StatefulWidget {
 
 class _DragTargetState extends State<_DragTarget> {
   static const duration = Duration(milliseconds: 100);
-
-  DropCandidateIndex _candidateIndex;
-  DragPosition _dragPosition;
-
-  @override
-  void initState() {
-    super.initState();
-    _candidateIndex = DropCandidateIndex.of(context)..addListener(_update);
-    _dragPosition = DragPosition.of(context)..addListener(_update);
-  }
-
-  @override
-  void dispose() {
-    _candidateIndex.removeListener(_update);
-    _dragPosition.removeListener(_update);
-    super.dispose();
-  }
-
-  void _update() => setState(() {});
 
   @override
   Widget build(BuildContext context) {

@@ -24,7 +24,7 @@ class TableEditor extends StatelessWidget {
         BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => TableHorizontalPosition()),
         ChangeNotifierProvider(builder: (_) => DragPosition()),
-        ChangeNotifierProvider(builder: (_) => DropCandidateIndex()),
+        ChangeNotifierProvider(builder: (_) => DraggedRow()),
         ChangeNotifierProvider(builder: (_) => DropTarget()),
       ],
       child: _EditorContent(),
