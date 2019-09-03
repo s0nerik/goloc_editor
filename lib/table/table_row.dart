@@ -88,6 +88,7 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
           }
           return result;
         },
+        onLeave: (candidateKey) {},
         onAccept: (row) {
           print('onAccept[${key.value}]: $row');
         },
@@ -187,21 +188,18 @@ class _DragTargetState extends State<_DragTarget> {
 
   DropCandidateIndex _candidateIndex;
   DragPosition _dragPosition;
-  DropTarget _dropTarget;
 
   @override
   void initState() {
     super.initState();
     _candidateIndex = DropCandidateIndex.of(context)..addListener(_update);
     _dragPosition = DragPosition.of(context)..addListener(_update);
-    _dropTarget = DropTarget.of(context)..addListener(_update);
   }
 
   @override
   void dispose() {
     _candidateIndex.removeListener(_update);
     _dragPosition.removeListener(_update);
-    _dropTarget.removeListener(_update);
     super.dispose();
   }
 

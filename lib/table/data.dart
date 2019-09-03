@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:goloc_editor/util/element_info.dart';
 import 'package:provider/provider.dart';
@@ -32,4 +33,30 @@ class DropCandidateIndex extends ValueNotifier<int> {
 class DropTarget extends ElementInfoNotifier {
   static DropTarget of(BuildContext context) =>
       Provider.of(context, listen: false);
+}
+
+class DraggedRows extends ChangeNotifier implements ValueListenable<Set<int>> {
+  final Set<int> _indices = Set();
+
+  @override
+  Set<int> get value => _indices;
+
+  void add(int index) {
+    if (_indices.add(index)) {
+      notifyListeners();
+    }
+  }
+
+  void remove(int index) {
+    if (_indices.remove(index)) {
+      notifyListeners();
+    }
+  }
+
+  void clear() {
+    if (_indices.length > 0) {
+      _indices.clear();
+      notifyListeners();
+    }
+  }
 }
