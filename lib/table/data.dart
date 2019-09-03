@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:goloc_editor/util/element_info.dart';
 import 'package:provider/provider.dart';
 
 const double cellWidth = 128;
@@ -23,23 +22,12 @@ class DragPosition extends ValueNotifier<Offset> {
       Provider.of(context, listen: false);
 }
 
-class DraggedRow extends ValueNotifier<int> {
-  DraggedRow() : super(null);
-
-  static DraggedRow of(BuildContext context) =>
-      Provider.of(context, listen: false);
-}
-
-class DropTarget extends ElementInfoNotifier {
-  static DropTarget of(BuildContext context) =>
-      Provider.of(context, listen: false);
-}
-
-class DraggedRows extends ChangeNotifier implements ValueListenable<Set<int>> {
+class DropTargets extends ChangeNotifier {
   final Set<int> _indices = Set();
 
-  @override
-  Set<int> get value => _indices;
+  bool contains(int index) => _indices.contains(index);
+  bool isLast(int index) =>
+      _indices.lastWhere((_) => true, orElse: () => null) == index;
 
   void add(int index) {
     if (_indices.add(index)) {
@@ -59,4 +47,7 @@ class DraggedRows extends ChangeNotifier implements ValueListenable<Set<int>> {
       notifyListeners();
     }
   }
+
+  static DropTargets of(BuildContext context, {bool listen = true}) =>
+      Provider.of(context, listen: listen);
 }

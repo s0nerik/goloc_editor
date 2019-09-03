@@ -84,11 +84,13 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
           print('onWillAccept[${key.value}]: $candidateKey');
           final result = key != candidateKey;
           if (result) {
-            DropTarget.of(context).setKey(scrollViewKey.currentContext, key);
+            DropTargets.of(context).add(widget.i);
           }
           return result;
         },
-        onLeave: (candidateKey) {},
+        onLeave: (candidateKey) {
+          DropTargets.of(context).remove(widget.i);
+        },
         onAccept: (row) {
           print('onAccept[${key.value}]: $row');
         },
@@ -131,15 +133,15 @@ Widget _buildDraggable(
     data: key,
     axis: Axis.vertical,
     onDragStarted: () {
-      DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
-      DraggedRow.of(context).value = key.value;
+//      DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
+//      DraggedRow.of(context).value = key.value;
     },
     onDragPositionChanged: (details) {
       DragPosition.of(context).value = details.offset;
     },
     onDragEnd: (_) {
       DragPosition.of(context).value = Offset.zero;
-      DraggedRow.of(context).value = null;
+//      DraggedRow.of(context).value = null;
     },
 //    childWhenDragging: SizedBox.shrink(),
     maxSimultaneousDrags: 1,
@@ -199,7 +201,7 @@ class _DragTargetState extends State<_DragTarget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          widget.candidateIndex != null
+          DropTargets.of(context).isLast(widget.contentKey.value)
               ? SizedBox(height: candidateHeight)
               : const SizedBox.shrink(),
           widget.child,
