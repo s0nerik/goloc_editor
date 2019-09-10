@@ -29,6 +29,11 @@ class TableSizeBloc implements Bloc {
     }
   }
 
+  int rowIndexByOffset(double offset) {
+    double tmpOffset = 0;
+    throw UnimplementedError();
+  }
+
   TableSizeBloc({
     @required List<List<String>> data,
     @required this.style,

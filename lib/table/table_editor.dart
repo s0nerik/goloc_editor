@@ -23,6 +23,7 @@ class TableEditor extends StatelessWidget {
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
         ChangeNotifierProvider(builder: (_) => TableHorizontalPosition()),
+        ChangeNotifierProvider(builder: (_) => TableVerticalPosition()),
         ChangeNotifierProvider(builder: (_) => DragPosition()),
         ChangeNotifierProvider(builder: (_) => DropTargets()),
       ],
@@ -31,10 +32,33 @@ class TableEditor extends StatelessWidget {
   }
 }
 
-class _EditorContent extends StatelessWidget {
+class _EditorContent extends StatefulWidget {
   const _EditorContent({
     Key key,
   }) : super(key: key);
+
+  @override
+  _EditorContentState createState() => _EditorContentState();
+}
+
+class _EditorContentState extends State<_EditorContent> {
+  final _ctrl = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(_updatePosition);
+  }
+
+  void _updatePosition() {
+    TableVerticalPosition.of(context).value = _ctrl.position.pixels;
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_updatePosition);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +97,7 @@ class _EditorContent extends StatelessWidget {
                       opaque: true,
                       builder: (context) => CustomScrollView(
                         key: scrollViewKey,
+                        controller: _ctrl,
                         slivers: document.sections
                             .map((s) => TSection(section: s))
                             .toList(),

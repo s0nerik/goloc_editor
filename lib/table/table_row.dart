@@ -201,7 +201,10 @@ class _DragTargetState extends State<_DragTarget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          DropTargets.of(context).isLast(widget.contentKey.value)
+          TableSizeBloc.of(context)
+                  .DropTargets
+                  .of(context)
+                  .isLast(widget.contentKey.value)
               ? SizedBox(height: candidateHeight)
               : const SizedBox.shrink(),
           widget.child,
