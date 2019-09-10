@@ -724,12 +724,6 @@ class _DragAvatar<T> extends Drag {
       if (entry.target is RenderMetaData) {
         final RenderMetaData renderMetaData = entry.target;
         if (renderMetaData.metaData is _DragTargetState<T>) {
-          if (entry.target is RenderBox) {
-            final RenderBox renderBox = entry.target;
-            final pos = renderBox.localToGlobal(Offset.zero);
-            final size = renderBox.size;
-            print('BOX ${pos}::${size}');
-          }
           yield renderMetaData.metaData;
         }
       }

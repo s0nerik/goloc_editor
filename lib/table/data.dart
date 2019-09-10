@@ -15,8 +15,27 @@ class TableHorizontalPosition extends ValueNotifier<double> {
       Provider.of(context, listen: false);
 }
 
+class TableVerticalPosition extends ValueNotifier<double> {
+  TableVerticalPosition() : super(0);
+
+  @override
+  set value(double newValue) {
+    print('TableVerticalPosition: $newValue');
+    super.value = newValue;
+  }
+
+  static TableVerticalPosition of(BuildContext context) =>
+      Provider.of(context, listen: false);
+}
+
 class DragPosition extends ValueNotifier<Offset> {
   DragPosition() : super(Offset.zero);
+
+  @override
+  set value(Offset newValue) {
+    print('DragPosition: $newValue');
+    super.value = newValue;
+  }
 
   static DragPosition of(BuildContext context) =>
       Provider.of(context, listen: false);
