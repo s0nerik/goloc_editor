@@ -675,12 +675,8 @@ class _DragAvatar<T> extends Drag {
     _lastOffset = globalPosition - dragStartPoint;
     _entry.markNeedsBuild();
     final HitTestResult result = HitTestResult();
-//    WidgetsBinding.instance
-//        .hitTest(result, globalPosition - pointerOffset + feedbackOffset);
-    WidgetsBinding.instance.hitTest(
-      result,
-      globalPosition - pointerOffset + feedbackOffset + Offset(0, size.height),
-    );
+    WidgetsBinding.instance
+        .hitTest(result, globalPosition - pointerOffset + feedbackOffset);
 
     final List<_DragTargetState<T>> targets =
         _getDragTargets(result.path).toList();
@@ -705,57 +701,17 @@ class _DragAvatar<T> extends Drag {
     // If everything's the same, bail early.
     if (listsMatch) return;
 
-//    // Leave old targets.
-//    _leaveAllEntered();
-//
-//    // Enter new targets.
-//    final _DragTargetState<T> newTarget = targets.firstWhere(
-//      (_DragTargetState<T> target) {
-//        _enteredTargets.add(target);
-//        return target.didEnter(this);
-//      },
-//      orElse: () => null,
-//    );
-
     // Leave old targets.
-//    final oldEnteredTargets = List<_DragTargetState<T>>.from(_enteredTargets);
-    _leaveAllEntered(); // TODO: leave only the targets that are not longer hit
+    _leaveAllEntered();
 
     // Enter new targets.
-    _DragTargetState<T> newTarget = targets.firstWhere(
+    final _DragTargetState<T> newTarget = targets.firstWhere(
       (_DragTargetState<T> target) {
         _enteredTargets.add(target);
         return target.didEnter(this);
       },
       orElse: () => null,
     );
-
-//    if (oldEnteredTargets.contains(newTarget)) {
-//      newTarget = targets.skip(_enteredTargets.length).firstWhere(
-//        (target) {
-//          _enteredTargets.add(target);
-//          return target.didEnter(this);
-//        },
-//        orElse: () => newTarget,
-//      );
-//    }
-
-//    _DragTargetState<T> backupTarget;
-//    _DragTargetState<T> newTarget;
-//    for (final target in targets) {
-//      _enteredTargets.add(target);
-//      if (target.didEnter(this)) {
-//        if (oldEnteredTargets.contains(target)) {
-//          backupTarget = target;
-//        } else {
-//          newTarget = target;
-//          break;
-//        }
-//      }
-//    }
-//    if (newTarget == null && backupTarget != null) {
-//      newTarget = backupTarget;
-//    }
 
     _activeTarget = newTarget;
   }
