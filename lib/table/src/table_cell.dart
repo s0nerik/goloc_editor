@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
-import 'package:goloc_editor/table/data.dart';
-import 'package:goloc_editor/table/table_bloc.dart';
+import 'package:goloc_editor/table/src/data.dart';
+import 'package:goloc_editor/table/src/table_bloc.dart';
 
 class TCell extends StatefulWidget {
   final int row;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:goloc_editor/table/table_editor.dart';
+import 'package:goloc_editor/table/table.dart';
 
 void run() {
   runApp(App());

@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:goloc_editor/table/data.dart';
+import 'package:goloc_editor/table/src/data.dart';
 
 class DragHandle extends StatelessWidget {
   final int row;

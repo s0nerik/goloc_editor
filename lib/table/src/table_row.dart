@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
-import 'package:goloc_editor/table/drag_handle.dart';
-import 'package:goloc_editor/table/table_bloc.dart';
-import 'package:goloc_editor/table/table_cell.dart';
+import 'package:goloc_editor/table/src/drag_handle.dart';
+import 'package:goloc_editor/table/src/table_bloc.dart';
+import 'package:goloc_editor/table/src/table_cell.dart';
 import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:vsync_provider/vsync_provider.dart';
 

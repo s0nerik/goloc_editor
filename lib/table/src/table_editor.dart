@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
-import 'package:goloc_editor/table/data.dart';
-import 'package:goloc_editor/table/table_bloc.dart';
-import 'package:goloc_editor/table/table_row.dart';
-import 'package:goloc_editor/table/table_section.dart';
+import 'package:goloc_editor/table/src/data.dart';
+import 'package:goloc_editor/table/src/table_bloc.dart';
+import 'package:goloc_editor/table/src/table_row.dart';
+import 'package:goloc_editor/table/src/table_section.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
