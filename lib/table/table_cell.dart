@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table/data.dart';
-import 'package:goloc_editor/table_size_bloc.dart';
+import 'package:goloc_editor/table/table_bloc.dart';
 
 class TCell extends StatefulWidget {
   final int row;
@@ -42,7 +42,7 @@ class _TCellState extends State<TCell> {
         maxLines: null,
         onChanged: (text) {
           DocumentBloc.of(context).setCell(widget.row, widget.col, text);
-          TableSizeBloc.of(context)
+          TableBloc.of(context)
               .notifyCellTextChanged(widget.row, widget.col, text);
         },
       ),

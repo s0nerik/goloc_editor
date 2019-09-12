@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/subjects.dart';
 
-class TableSizeBloc implements Bloc {
+class TableBloc implements Bloc {
   final TextStyle style;
   final double textScaleFactor;
   final EdgeInsetsGeometry padding;
@@ -34,7 +34,7 @@ class TableSizeBloc implements Bloc {
     throw UnimplementedError();
   }
 
-  TableSizeBloc({
+  TableBloc({
     @required List<List<String>> data,
     @required this.style,
     @required this.textScaleFactor,
@@ -61,8 +61,8 @@ class TableSizeBloc implements Bloc {
     _sizes.close();
   }
 
-  static TableSizeBloc of(BuildContext context) =>
-      Provider.of<TableSizeBloc>(context, listen: false);
+  static TableBloc of(BuildContext context) =>
+      Provider.of<TableBloc>(context, listen: false);
 }
 
 double _getTextHeight(String text, TextStyle style, double textScaleFactor,

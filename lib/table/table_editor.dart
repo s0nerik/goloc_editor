@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table/data.dart';
+import 'package:goloc_editor/table/table_bloc.dart';
 import 'package:goloc_editor/table/table_row.dart';
 import 'package:goloc_editor/table/table_section.dart';
-import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:goloc_editor/util/widget_util.dart';
 import 'package:goloc_editor/widget/async.dart';
@@ -65,7 +65,7 @@ class _EditorContentState extends State<_EditorContent> {
     return SimpleFutureBuilder<Document>(
       future: DocumentBloc.of(context).document.firstWhere((d) => d.rows > 0),
       builder: (document) => BlocProvider(
-        builder: (context) => TableSizeBloc(
+        builder: (context) => TableBloc(
           data: document.data,
           cellWidth: cellWidth,
           style: inherited<DefaultTextStyle>(context, listen: false).style,

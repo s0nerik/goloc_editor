@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table/data.dart';
 import 'package:goloc_editor/table/drag_handle.dart';
+import 'package:goloc_editor/table/table_bloc.dart';
 import 'package:goloc_editor/table/table_cell.dart';
-import 'package:goloc_editor/table_size_bloc.dart';
 import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:vsync_provider/vsync_provider.dart';
 
@@ -37,8 +37,7 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
         initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
     _ctrl.addListener(_notifyOffset);
 
-    _heightSub =
-        TableSizeBloc.of(context).rowHeightStream(widget.i).listen((_) {
+    _heightSub = TableBloc.of(context).rowHeightStream(widget.i).listen((_) {
       setState(() {});
     });
     _colsSub = DocumentBloc.of(context).colsStream.listen((_) {
@@ -67,7 +66,7 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final height = TableSizeBloc.of(context).rowHeight(widget.i);
+    final height = TableBloc.of(context).rowHeight(widget.i);
     final cols = DocumentBloc.of(context).cols;
 
     final key = ValueKey(widget.i);
@@ -191,7 +190,7 @@ class _DragTargetState extends State<_DragTarget> {
   @override
   Widget build(BuildContext context) {
     final candidateHeight = widget.candidateIndex != null
-        ? TableSizeBloc.of(context).rowHeight(widget.candidateIndex)
+        ? TableBloc.of(context).rowHeight(widget.candidateIndex)
         : 0.0;
 
     return AnimatedSize(
