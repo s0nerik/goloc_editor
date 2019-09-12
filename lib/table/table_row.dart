@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
-import 'package:goloc_editor/table/data.dart';
 import 'package:goloc_editor/table/drag_handle.dart';
 import 'package:goloc_editor/table/table_bloc.dart';
 import 'package:goloc_editor/table/table_cell.dart';
@@ -23,20 +22,26 @@ class TRow extends StatefulWidget {
 
 class _TRowState extends State<TRow> with TickerProviderStateMixin {
   ScrollController _ctrl;
-  TableHorizontalPosition _tableOffset;
 
+  TableBloc _tableBloc;
+
+  StreamSubscription _horizontalOffsetSub;
   StreamSubscription _heightSub;
   StreamSubscription _colsSub;
 
   @override
   void initState() {
     super.initState();
-    _tableOffset = TableHorizontalPosition.of(context);
-    _tableOffset.addListener(_updateWithOffset);
+    _tableBloc = TableBloc.of(context);
+
     _ctrl = ScrollController(
-        initialScrollOffset: _tableOffset.value, keepScrollOffset: false);
+      initialScrollOffset: _tableBloc.horizontalOffset.value,
+      keepScrollOffset: false,
+    );
     _ctrl.addListener(_notifyOffset);
 
+    _horizontalOffsetSub =
+        _tableBloc.horizontalOffset.listen(_updateWithOffset);
     _heightSub = TableBloc.of(context).rowHeightStream(widget.i).listen((_) {
       setState(() {});
     });
@@ -47,21 +52,21 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _tableOffset.removeListener(_updateWithOffset);
     _ctrl.removeListener(_notifyOffset);
+    _horizontalOffsetSub?.cancel();
     _heightSub?.cancel();
     _colsSub?.cancel();
     super.dispose();
   }
 
-  void _updateWithOffset() {
-    if (_ctrl.offset != _tableOffset.value) {
-      _ctrl.jumpTo(_tableOffset.value);
+  void _updateWithOffset(double offset) {
+    if (_ctrl.offset != offset) {
+      _ctrl.jumpTo(offset);
     }
   }
 
   void _notifyOffset() {
-    _tableOffset.value = _ctrl.offset;
+    _tableBloc.horizontalOffset.value = _ctrl.offset;
   }
 
   @override

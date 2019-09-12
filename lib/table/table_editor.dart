@@ -22,8 +22,6 @@ class TableEditor extends StatelessWidget {
     return MultiProvider(
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
-        ChangeNotifierProvider(builder: (_) => TableHorizontalPosition()),
-        ChangeNotifierProvider(builder: (_) => TableVerticalPosition()),
       ],
       child: _EditorContent(),
     );
@@ -49,7 +47,7 @@ class _EditorContentState extends State<_EditorContent> {
   }
 
   void _updatePosition() {
-    TableVerticalPosition.of(context).value = _ctrl.position.pixels;
+    TableBloc.of(context).verticalOffset.value = _ctrl.position.pixels;
   }
 
   @override

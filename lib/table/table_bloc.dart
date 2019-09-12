@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 
 class TableBloc implements Bloc {
@@ -17,6 +18,8 @@ class TableBloc implements Bloc {
   final _sizes = BehaviorSubject<List<List<double>>>();
 
   final dragPosition = BehaviorSubject.seeded(Offset.zero);
+  final horizontalOffset = BehaviorSubject<double>.seeded(0);
+  final verticalOffset = BehaviorSubject<double>.seeded(0);
 
   Stream<double> rowHeightStream(int row) =>
       _sizes.map((sizes) => sizes[row]).map(_getRowHeight).distinct();
