@@ -16,6 +16,8 @@ class TableBloc implements Bloc {
 
   final _sizes = BehaviorSubject<List<List<double>>>();
 
+  final dragPosition = BehaviorSubject.seeded(Offset.zero);
+
   Stream<double> rowHeightStream(int row) =>
       _sizes.map((sizes) => sizes[row]).map(_getRowHeight).distinct();
 

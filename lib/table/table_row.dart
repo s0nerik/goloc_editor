@@ -136,11 +136,10 @@ Widget _buildDraggable(
 //      DraggedRow.of(context).value = key.value;
     },
     onDragPositionChanged: (details) {
-      DragPosition.of(context).value = details.offset;
+      TableBloc.of(context).dragPosition.value = details.offset;
     },
     onDragEnd: (_) {
-      DragPosition.of(context).value = Offset.zero;
-//      DraggedRow.of(context).value = null;
+      TableBloc.of(context).dragPosition.value = Offset.zero;
     },
 //    childWhenDragging: SizedBox.shrink(),
     maxSimultaneousDrags: 1,

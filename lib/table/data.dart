@@ -28,19 +28,6 @@ class TableVerticalPosition extends ValueNotifier<double> {
       Provider.of(context, listen: false);
 }
 
-class DragPosition extends ValueNotifier<Offset> {
-  DragPosition() : super(Offset.zero);
-
-  @override
-  set value(Offset newValue) {
-    print('DragPosition: $newValue');
-    super.value = newValue;
-  }
-
-  static DragPosition of(BuildContext context) =>
-      Provider.of(context, listen: false);
-}
-
 class DropTargets extends ChangeNotifier {
   final Set<int> _indices = Set();
 
