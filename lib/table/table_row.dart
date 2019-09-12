@@ -81,14 +81,7 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
         key: key,
         onWillAccept: (candidateKey) {
           print('onWillAccept[${key.value}]: $candidateKey');
-          final result = key != candidateKey;
-          if (result) {
-            DropTargets.of(context).add(widget.i);
-          }
-          return result;
-        },
-        onLeave: (candidateKey) {
-          DropTargets.of(context).remove(widget.i);
+          return key != candidateKey;
         },
         onAccept: (row) {
           print('onAccept[${key.value}]: $row');

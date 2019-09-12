@@ -27,33 +27,3 @@ class TableVerticalPosition extends ValueNotifier<double> {
   static TableVerticalPosition of(BuildContext context) =>
       Provider.of(context, listen: false);
 }
-
-class DropTargets extends ChangeNotifier {
-  final Set<int> _indices = Set();
-
-  bool contains(int index) => _indices.contains(index);
-  bool isLast(int index) =>
-      _indices.lastWhere((_) => true, orElse: () => null) == index;
-
-  void add(int index) {
-    if (_indices.add(index)) {
-      notifyListeners();
-    }
-  }
-
-  void remove(int index) {
-    if (_indices.remove(index)) {
-      notifyListeners();
-    }
-  }
-
-  void clear() {
-    if (_indices.isNotEmpty) {
-      _indices.clear();
-      notifyListeners();
-    }
-  }
-
-  static DropTargets of(BuildContext context, {bool listen = true}) =>
-      Provider.of(context, listen: listen);
-}
