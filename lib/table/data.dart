@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 const double cellWidth = 128;
 const double rowIndicatorWidth = 32;
-const padding = const EdgeInsets.all(8.0);
+const padding = EdgeInsets.all(8.0);
 
 final scrollViewKey = GlobalKey(debugLabel: 'scrollViewKey');
 
@@ -61,7 +61,7 @@ class DropTargets extends ChangeNotifier {
   }
 
   void clear() {
-    if (_indices.length > 0) {
+    if (_indices.isNotEmpty) {
       _indices.clear();
       notifyListeners();
     }

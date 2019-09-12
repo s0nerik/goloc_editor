@@ -19,7 +19,7 @@ class Document {
 
   int get rows => _data.length;
   int get cols {
-    if (_data.length == 0) return 0;
+    if (_data.isEmpty) return 0;
     int cols = _data[0].length;
     if (hasSections) {
       return cols - 1; // Minus section title column
