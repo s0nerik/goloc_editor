@@ -12,7 +12,6 @@ int overlapIndex({
   final headerHeight = rowHeights[0];
   final pinnedSectionIndex = pinnedSectionTitleIndex(
     tableScrollAmount: tableScrollAmount,
-    rowOffsets: rowOffsets,
     rowHeights: rowHeights,
     sectionTitlePositions: sectionTitlePositions,
   );
@@ -25,16 +24,23 @@ int overlapIndex({
 
 int pinnedSectionTitleIndex({
   @required double tableScrollAmount,
-  @required List<double> rowOffsets,
   @required List<double> rowHeights,
   @required List<int> sectionTitlePositions,
 }) {
-  assert(rowOffsets.length == rowHeights.length);
-  if (rowOffsets.isEmpty || sectionTitlePositions.isEmpty) {
+  if (rowHeights.isEmpty || sectionTitlePositions.isEmpty) {
     return -1;
   }
 
-  // TODO
+  double scrollOffset = 0;
+  int pinnedIndex = -1;
+  for (int i = 0;
+      i < rowHeights.length && scrollOffset <= tableScrollAmount;
+      i++) {
+    if (sectionTitlePositions.contains(i)) {
+      pinnedIndex = i;
+    }
+    scrollOffset += rowHeights[i];
+  }
 
-  return -1;
+  return pinnedIndex;
 }
