@@ -3,25 +3,21 @@ import 'package:goloc_editor/table/src/util.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class _OverlapIndexTest {
+class _OverlapTest {
   final String name;
   final double draggableY;
   final double draggableHeight;
   final double tableScrollAmount;
-  final List<double> rowOffsets;
   final List<double> rowHeights;
-  final List<int> sectionTitlePositions;
-  final int expectedResult;
+  final List<int> expectedOverlapIndices;
 
-  _OverlapIndexTest({
+  _OverlapTest({
     @required this.name,
     @required this.draggableY,
     @required this.draggableHeight,
     @required this.tableScrollAmount,
-    @required this.rowOffsets,
     @required this.rowHeights,
-    @required this.sectionTitlePositions,
-    @required this.expectedResult,
+    @required this.expectedOverlapIndices,
   });
 }
 
@@ -42,27 +38,39 @@ class _PinnedSectionTitleIndexTest {
   });
 }
 
-final _overlapIndexTests = [
-//  _OverlapIndexTest(
-//    name: '1',
-//    draggableY: 20,
-//    draggableHeight: 10,
-//    tableScrollAmount: 10,
-//    rowOffsets: [0, 10, 20, 30, 40, 50],
-//    rowHeights: [10, 10, 10, 10, 10, 10],
-//    sectionTitlePositions: [],
-//    expectedResult: -1,
-//  ),
-//  _OverlapIndexTest(
-//    name: 'simple',
-//    draggableY: 0,
-//    draggableHeight: 10,
-//    tableScrollAmount: 10,
-//    rowOffsets: [0, 10, 20, 30, 40, 50],
-//    rowHeights: [10, 10, 10, 10, 10, 10],
-//    sectionTitlePositions: [],
-//    expectedResult: 0,
-//  )
+final _overlapTests = <_OverlapTest>[
+  _OverlapTest(
+    name: 'single 1',
+    draggableY: 20,
+    draggableHeight: 9,
+    tableScrollAmount: 0,
+    rowHeights: [10, 10, 10, 10, 10, 10],
+    expectedOverlapIndices: [2],
+  ),
+  _OverlapTest(
+    name: 'single 2 (edge value)',
+    draggableY: 20,
+    draggableHeight: 10,
+    tableScrollAmount: 0,
+    rowHeights: [10, 10, 10, 10, 10, 10],
+    expectedOverlapIndices: [2],
+  ),
+  _OverlapTest(
+    name: 'multiple 1',
+    draggableY: 20,
+    draggableHeight: 11,
+    tableScrollAmount: 0,
+    rowHeights: [10, 10, 10, 10, 10, 10],
+    expectedOverlapIndices: [2, 3],
+  ),
+  _OverlapTest(
+    name: 'multiple 2 (edge value)',
+    draggableY: 20,
+    draggableHeight: 20,
+    tableScrollAmount: 0,
+    rowHeights: [10, 10, 10, 10, 10, 10],
+    expectedOverlapIndices: [2, 3],
+  ),
 ];
 
 final _pinnedSectionTitleIndexTests = [
@@ -174,17 +182,15 @@ final _pinnedSectionTitleIndexTests = [
 ];
 
 void main() {
-  for (final t in _overlapIndexTests) {
-    test('overlapIndex: ${t.name}', () {
-      final result = overlapIndex(
+  for (final t in _overlapTests) {
+    test('overlap: ${t.name}', () {
+      final result = overlap(
         draggableY: t.draggableY,
         draggableHeight: t.draggableHeight,
         tableScrollAmount: t.tableScrollAmount,
-        rowOffsets: t.rowOffsets,
         rowHeights: t.rowHeights,
-        sectionTitlePositions: t.sectionTitlePositions,
       );
-      expect(result, t.expectedResult);
+      expect(result.map((o) => o.index).toList(), t.expectedOverlapIndices);
     });
   }
   for (final t in _pinnedSectionTitleIndexTests) {
