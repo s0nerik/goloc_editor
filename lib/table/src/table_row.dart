@@ -5,6 +5,8 @@ import 'package:goloc_editor/document_bloc.dart';
 import 'package:goloc_editor/table/src/drag_handle.dart';
 import 'package:goloc_editor/table/src/table_bloc.dart';
 import 'package:goloc_editor/table/src/table_cell.dart';
+import 'package:goloc_editor/table/src/util.dart';
+import 'package:goloc_editor/widget/async.dart';
 import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:vsync_provider/vsync_provider.dart';
 
@@ -129,17 +131,10 @@ Widget _buildDraggable(
   return drag.LongPressDraggable<Key>(
     data: key,
     axis: Axis.vertical,
-    onDragStarted: () {
-//      DropTarget.of(context).setKey(scrollViewKey.currentContext, null);
-//      DraggedRow.of(context).value = key.value;
-    },
-    onDragPositionChanged: (details) {
-      TableBloc.of(context).dragPosition.value = details.offset;
-    },
-    onDragEnd: (_) {
-      TableBloc.of(context).dragPosition.value = Offset.zero;
-    },
-//    childWhenDragging: SizedBox.shrink(),
+    onDragStarted: () => TableBloc.of(context).notifyDragStarted(key.value),
+    onDragPositionChanged: (details) =>
+        TableBloc.of(context).notifyDragOffsetChanged(details.offset),
+    onDragEnd: (_) => TableBloc.of(context).notifyDragEnded(),
     maxSimultaneousDrags: 1,
     feedback: Material(
       child: ConstrainedBox(
@@ -186,26 +181,20 @@ class _DragTargetState extends State<_DragTarget> {
 
   @override
   Widget build(BuildContext context) {
-    final candidateHeight = widget.candidateIndex != null
-        ? TableBloc.of(context).rowHeight(widget.candidateIndex)
-        : 0.0;
+    return ValueObservableBuilder<List<Overlap>>(
+      stream: TableBloc.of(context).overlappedRows,
+      builder: (context, overlappedRows) {
+        final isOverlapped = !overlappedRows
+            .indexWhere((o) => o.index == widget.contentKey.value)
+            .isNegative;
 
-    return AnimatedSize(
-      duration: duration,
-      vsync: VsyncProvider.of(context),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-//          TableSizeBloc.of(context)
-//                  .DropTargets
-//                  .of(context)
-//                  .isLast(widget.contentKey.value)
-//              ? SizedBox(height: candidateHeight)
-//              : const SizedBox.shrink(),
-          widget.child,
-        ],
-      ),
+        return Container(
+          decoration: BoxDecoration(
+            color: isOverlapped ? Colors.pink.withAlpha(122) : Colors.white,
+          ),
+          child: widget.child,
+        );
+      },
     );
   }
 }

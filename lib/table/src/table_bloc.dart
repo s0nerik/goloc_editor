@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:goloc_editor/table/src/util.dart';
 import 'package:goloc_editor/util/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,9 @@ class TableBloc implements Bloc {
 
   final _sizes = BehaviorSubject<List<List<double>>>();
 
-  final dragPosition = BehaviorSubject.seeded(Offset.zero);
+  final draggedRow = BehaviorSubject.seeded(-1);
+  final dragOffset = BehaviorSubject.seeded(Offset.zero);
+  final overlappedRows = BehaviorSubject<List<Overlap>>.seeded(const []);
   final horizontalOffset = BehaviorSubject<double>.seeded(0);
   final verticalOffset = BehaviorSubject<double>.seeded(0);
 
@@ -25,6 +28,8 @@ class TableBloc implements Bloc {
       _sizes.map((sizes) => sizes[row]).map(_getRowHeight).distinct();
 
   double rowHeight(int row) => _getRowHeight(_sizes.value[row]);
+
+  List<double> get _rowHeights => _sizes.value.map(_getRowHeight).toList();
 
   double _getRowHeight(List<double> cellHeights) {
     if (cellHeights.isNotEmpty) {
@@ -52,6 +57,26 @@ class TableBloc implements Bloc {
               cellText, style, textScaleFactor, padding, cellWidth))
           .toList();
     }).toList();
+  }
+
+  void notifyDragStarted(int row) {
+    draggedRow.value = row;
+  }
+
+  void notifyDragOffsetChanged(Offset offset) {
+    dragOffset.value = offset;
+    overlappedRows.value = overlap(
+      draggableY: offset.dy,
+      draggableHeight: rowHeight(draggedRow.value),
+      tableScrollAmount: verticalOffset.value + rowHeight(0),
+      rowHeights: _rowHeights,
+    );
+  }
+
+  void notifyDragEnded() {
+    dragOffset.value = Offset.zero;
+    draggedRow.value = -1;
+    overlappedRows.value = const [];
   }
 
   void notifyCellTextChanged(int row, int col, String text) {

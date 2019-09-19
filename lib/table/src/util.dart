@@ -8,6 +8,9 @@ class Overlap {
   final double amount;
 
   Overlap(this.index, this.amount);
+
+  @override
+  String toString() => '($index, $amount)';
 }
 
 List<Overlap> overlap({
@@ -38,6 +41,7 @@ List<Overlap> overlap({
     offset += rowHeights[i];
   }
 
+  print('${result}');
   return result;
 }
 
