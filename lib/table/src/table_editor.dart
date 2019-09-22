@@ -23,14 +23,33 @@ class TableEditor extends StatelessWidget {
       providers: [
         BlocProvider(builder: (_) => DocumentBloc(source)),
       ],
-      child: _EditorContent(),
+      child: Consumer<DocumentBloc>(
+        builder: (context, bloc, _) => SimpleFutureBuilder<Document>(
+          future: bloc.document.firstWhere((d) => d.rows > 0),
+          builder: (document) => BlocProvider(
+            builder: (context) => TableBloc(
+              data: document.data,
+              cellWidth: cellWidth,
+              style: inherited<DefaultTextStyle>(context, listen: false).style,
+              textScaleFactor: inherited<MediaQuery>(context, listen: false)
+                  .data
+                  .textScaleFactor,
+              padding: padding,
+            ),
+            child: _EditorContent(document: document),
+          ),
+        ),
+      ),
     );
   }
 }
 
 class _EditorContent extends StatefulWidget {
+  final Document document;
+
   const _EditorContent({
     Key key,
+    @required this.document,
   }) : super(key: key);
 
   @override
@@ -58,53 +77,39 @@ class _EditorContentState extends State<_EditorContent> {
 
   @override
   Widget build(BuildContext context) {
-    return SimpleFutureBuilder<Document>(
-      future: DocumentBloc.of(context).document.firstWhere((d) => d.rows > 0),
-      builder: (document) => BlocProvider(
-        builder: (context) => TableBloc(
-          data: document.data,
-          cellWidth: cellWidth,
-          style: inherited<DefaultTextStyle>(context, listen: false).style,
-          textScaleFactor: inherited<MediaQuery>(context, listen: false)
-              .data
-              .textScaleFactor,
-          padding: padding,
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(0),
+        child: Container(
+          color: Colors.black12,
+          child: SafeArea(child: SizedBox.shrink()),
         ),
-        child: Scaffold(
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(0),
-            child: Container(
-              color: Colors.black12,
-              child: SafeArea(child: SizedBox.shrink()),
+      ),
+      body: Column(
+        children: <Widget>[
+          Material(
+            color: Theme.of(context).appBarTheme.color,
+            elevation: 4,
+            child: TRow(i: 0),
+          ),
+          Expanded(
+            child: Overlay(
+              initialEntries: [
+                OverlayEntry(
+                  maintainState: true,
+                  opaque: true,
+                  builder: (context) => CustomScrollView(
+                    key: scrollViewKey,
+                    controller: _ctrl,
+                    slivers: widget.document.sections
+                        .map((s) => TSection(section: s))
+                        .toList(),
+                  ),
+                ),
+              ],
             ),
           ),
-          body: Column(
-            children: <Widget>[
-              Material(
-                color: Theme.of(context).appBarTheme.color,
-                elevation: 4,
-                child: TRow(i: 0),
-              ),
-              Expanded(
-                child: Overlay(
-                  initialEntries: [
-                    OverlayEntry(
-                      maintainState: true,
-                      opaque: true,
-                      builder: (context) => CustomScrollView(
-                        key: scrollViewKey,
-                        controller: _ctrl,
-                        slivers: document.sections
-                            .map((s) => TSection(section: s))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
