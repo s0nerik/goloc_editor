@@ -63,12 +63,14 @@ class TableBloc implements Bloc {
     draggedRow.value = row;
   }
 
-  void notifyDragOffsetChanged(Offset offset) {
+  void notifyDragOffsetChanged(Offset rawOffset) {
+    final offset = Offset(rawOffset.dx, rawOffset.dy - rowHeight(0));
+    debugPrint('offset: ${offset}');
     dragOffset.value = offset;
     overlappedRows.value = overlap(
       draggableY: offset.dy,
       draggableHeight: rowHeight(draggedRow.value),
-      tableScrollAmount: verticalOffset.value + rowHeight(0),
+      tableScrollAmount: verticalOffset.value,
       rowHeights: _rowHeights,
     );
   }

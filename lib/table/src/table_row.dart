@@ -132,8 +132,10 @@ Widget _buildDraggable(
     data: key,
     axis: Axis.vertical,
     onDragStarted: () => TableBloc.of(context).notifyDragStarted(key.value),
-    onDragPositionChanged: (details) =>
-        TableBloc.of(context).notifyDragOffsetChanged(details.offset),
+    onDragPositionChanged: (details) {
+      details.offset.translate(0, -MediaQuery.of(context).viewInsets.top);
+      TableBloc.of(context).notifyDragOffsetChanged(details.offset);
+    },
     onDragEnd: (_) => TableBloc.of(context).notifyDragEnded(),
     maxSimultaneousDrags: 1,
     feedback: Material(

@@ -658,7 +658,8 @@ class _DragAvatar<T> extends Drag {
     _position += _restrictAxis(details.delta);
     updateDrag(_position);
     if (onDragPositionChanged != null)
-      onDragPositionChanged(details.delta, details.globalPosition);
+      onDragPositionChanged(
+          details.delta, details.globalPosition - dragStartPoint);
   }
 
   @override
