@@ -37,11 +37,10 @@ List<Overlap> overlap({
     } else if (overlapAmount > 0) {
       break;
     }
-    i++;
     offset += rowHeights[i];
+    i++;
   }
 
-  print('${result}');
   return result;
 }
 
