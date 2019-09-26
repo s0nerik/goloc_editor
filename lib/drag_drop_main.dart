@@ -119,20 +119,23 @@ class _Item extends StatelessWidget {
     }
 
     return Container(
-      color: color,
       height: _heights[i % _heights.length],
-      child: Row(
-        children: <Widget>[
-          DragHandle(
-            dragAvatarBuilder: (_) => _Item(i: i, isDragged: true),
-            child: Container(
-              width: 120,
-              alignment: Alignment.center,
-              child: Text('X'),
+      padding: EdgeInsets.symmetric(vertical: 1),
+      child: Container(
+        color: color,
+        child: Row(
+          children: <Widget>[
+            DragHandle(
+              dragAvatarBuilder: (_) => _Item(i: i, isDragged: true),
+              child: Container(
+                width: 120,
+                alignment: Alignment.center,
+                child: Text('X'),
+              ),
             ),
-          ),
-          Expanded(child: Text('$i')),
-        ],
+            Expanded(child: Text('$i')),
+          ],
+        ),
       ),
     );
   }
