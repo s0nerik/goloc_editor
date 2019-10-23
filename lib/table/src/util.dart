@@ -28,8 +28,12 @@ List<Overlap> overlap({
   double overlapAmount = 0;
   double offset = 0;
   while (i < rowHeights.length) {
-    final overlapHeight = min(draggableBottom, offset + rowHeights[i]) -
-        max(draggableTop, offset);
+    final rowTop = offset;
+    final rowBottom = offset + rowHeights[i];
+
+    final overlapBottom = min(draggableBottom, rowBottom);
+    final overlapTop = max(draggableTop, rowTop);
+    final overlapHeight = overlapBottom - overlapTop;
 
     if (overlapHeight > 0) {
       overlapAmount = overlapHeight / rowHeights[i];
