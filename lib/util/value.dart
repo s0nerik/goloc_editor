@@ -1,5 +1,5 @@
 class Value<T> {
-  T value;
+  Value(this.value);
 
-  Value(T value) : this.value = value;
+  T value;
 }

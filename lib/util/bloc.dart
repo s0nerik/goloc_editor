@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 
+// ignore: one_member_abstracts
 abstract class Bloc {
   void dispose();
 }

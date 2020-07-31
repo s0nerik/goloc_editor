@@ -3,11 +3,9 @@ import 'package:provider/provider.dart';
 
 T inherited<T extends InheritedWidget>(BuildContext context,
     {bool listen = true}) {
-  // this is required to get generic Type
-  final type = _typeOf<T>();
   final widget = listen
-      ? context.inheritFromWidgetOfExactType(type) as T
-      : context.ancestorInheritedElementForWidgetOfExactType(type)?.widget as T;
+      ? context.dependOnInheritedWidgetOfExactType<T>()
+      : context.getElementForInheritedWidgetOfExactType<T>()?.widget;
 
   assert(widget != null);
 
@@ -16,5 +14,3 @@ T inherited<T extends InheritedWidget>(BuildContext context,
 
 T provided<T>(BuildContext context, {bool listen = true}) =>
     Provider.of<T>(context, listen: listen);
-
-Type _typeOf<T>() => T;

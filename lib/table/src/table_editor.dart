@@ -10,12 +10,12 @@ import 'package:goloc_editor/widget/async.dart';
 import 'package:provider/provider.dart';
 
 class TableEditor extends StatelessWidget {
-  final String source;
-
   const TableEditor({
     Key key,
     @required this.source,
   }) : super(key: key);
+
+  final String source;
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +45,12 @@ class TableEditor extends StatelessWidget {
 }
 
 class _EditorContent extends StatefulWidget {
-  final Document document;
-
   const _EditorContent({
     Key key,
     @required this.document,
   }) : super(key: key);
+
+  final Document document;
 
   @override
   _EditorContentState createState() => _EditorContentState();
@@ -79,10 +79,10 @@ class _EditorContentState extends State<_EditorContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(0),
+        preferredSize: const Size.fromHeight(0),
         child: Container(
           color: Colors.black12,
-          child: SafeArea(child: SizedBox.shrink()),
+          child: const SafeArea(child: SizedBox.shrink()),
         ),
       ),
       body: Column(
@@ -90,7 +90,7 @@ class _EditorContentState extends State<_EditorContent> {
           Material(
             color: Theme.of(context).appBarTheme.color,
             elevation: 4,
-            child: TRow(i: 0),
+            child: const TRow(i: 0),
           ),
           Expanded(
             child: Overlay(

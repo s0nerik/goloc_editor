@@ -11,12 +11,12 @@ import 'package:goloc_editor/widget/drag_target.dart' as drag;
 import 'package:vsync_provider/vsync_provider.dart';
 
 class TRow extends StatefulWidget {
-  final int i;
-
   const TRow({
     Key key,
     @required this.i,
   }) : super(key: key);
+
+  final int i;
 
   @override
   _TRowState createState() => _TRowState();
@@ -87,13 +87,13 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
       child: drag.DragTarget<Key>(
         key: key,
         onWillAccept: (candidateKey) {
-          print('onWillAccept[${key.value}]: $candidateKey');
+          debugPrint('onWillAccept[${key.value}]: $candidateKey');
           return key != candidateKey;
         },
         onAccept: (row) {
-          print('onAccept[${key.value}]: $row');
+          debugPrint('onAccept[${key.value}]: $row');
         },
-        builder: (BuildContext context, List<Key> candidateData, _) =>
+        builder: (context, candidateData, _) =>
             _buildDragTarget(context, candidateData, draggable, content, key),
       ),
     );
@@ -139,13 +139,13 @@ Widget _buildDraggable(
     onDragEnd: (_) => TableBloc.of(context).notifyDragEnded(),
     maxSimultaneousDrags: 1,
     feedback: Material(
+      elevation: 4,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width,
         ),
         child: content,
       ),
-      elevation: 4.0,
     ),
     child: content,
   );
@@ -153,26 +153,28 @@ Widget _buildDraggable(
 
 Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
     Widget draggable, Widget content, ValueKey<int> key) {
+  final ValueKey<int> candidateKey =
+      candidateData.isNotEmpty && candidateData[0] is ValueKey<int>
+          ? candidateData[0]
+          : null;
   return _DragTarget(
     contentKey: key,
-    candidateIndex: candidateData.isNotEmpty
-        ? (candidateData[0] as ValueKey<int>).value
-        : null,
+    candidateIndex: candidateKey?.value,
     child: candidateData.isNotEmpty ? content : draggable,
   );
 }
 
 class _DragTarget extends StatefulWidget {
-  final ValueKey<int> contentKey;
-  final int candidateIndex;
-  final Widget child;
-
   const _DragTarget({
     Key key,
     @required this.contentKey,
     @required this.candidateIndex,
     @required this.child,
   }) : super(key: key);
+
+  final ValueKey<int> contentKey;
+  final int candidateIndex;
+  final Widget child;
 
   @override
   _DragTargetState createState() => _DragTargetState();

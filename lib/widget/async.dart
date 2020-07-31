@@ -5,8 +5,8 @@ typedef ContentBuilder<T> = Widget Function(T data);
 typedef ValueStreamWidgetBuilder<T> = Widget Function(
     BuildContext context, T data);
 
-/// A [FutureBuilder] that displays a [progressIndicator] until [future] is fetched.
-/// In case of error - shows a [errorIndicator].
+/// A [FutureBuilder] that displays a [progressIndicator] until [future]
+/// is fetched. In case of error - shows an [errorIndicator].
 class SimpleFutureBuilder<T> extends StatelessWidget {
   const SimpleFutureBuilder({
     Key key,
@@ -37,14 +37,16 @@ class SimpleFutureBuilder<T> extends StatelessWidget {
             return builder(snapshot.data);
           default:
             throw UnsupportedError(
-                'Connection state ${snapshot.connectionState} is not supported');
+              'Connection state ${snapshot.connectionState} is not supported',
+            );
         }
       },
     );
   }
 }
 
-/// A wrapper over [StreamBuilder] that invokes [builder] with stream data assuming that the stream will never produce an error.
+/// A wrapper over [StreamBuilder] that invokes [builder] with stream data
+/// assuming that the stream will never produce an error.
 class ValueStreamBuilder<T> extends StatelessWidget {
   const ValueStreamBuilder({
     Key key,
@@ -65,7 +67,9 @@ class ValueStreamBuilder<T> extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           throw ArgumentError(
-              'Stream should not produce any errors to be used with ValueStreamBuilder. Error: ${snapshot.error}');
+            'Stream should not produce any errors '
+            'to be used with ValueStreamBuilder. Error: ${snapshot.error}',
+          );
         }
         return builder(context, snapshot.requireData);
       },
@@ -73,7 +77,8 @@ class ValueStreamBuilder<T> extends StatelessWidget {
   }
 }
 
-/// A wrapper over [ValueStreamBuilder] that automatically provides initial value to the builder.
+/// A wrapper over [ValueStreamBuilder] that automatically provides initial
+/// value to the builder.
 class ValueObservableBuilder<T> extends StatelessWidget {
   const ValueObservableBuilder({
     Key key,
@@ -97,7 +102,8 @@ class ValueObservableBuilder<T> extends StatelessWidget {
 typedef MultiValueStreamWidgetBuilder = Widget Function(
     BuildContext context, List<Object> values);
 
-/// A wrapper over [ValueStreamBuilder] that automatically provides [builder] with latest values from each stream.
+/// A wrapper over [ValueStreamBuilder] that automatically provides [builder]
+/// with latest values from each stream.
 class MultiValueObservableBuilder extends StatelessWidget {
   const MultiValueObservableBuilder({
     Key key,
@@ -121,7 +127,8 @@ class MultiValueObservableBuilder extends StatelessWidget {
 typedef ValueStreamWidgetBuilder2<T1, T2> = Widget Function(
     BuildContext context, T1 value1, T2 value2);
 
-/// A wrapper over [ValueObservableBuilder] that automatically provides [builder] with latest values from each stream.
+/// A wrapper over [ValueObservableBuilder] that automatically provides
+/// [builder] with latest values from each stream.
 class ValueObservableBuilder2<T1, T2> extends StatelessWidget {
   const ValueObservableBuilder2({
     Key key,
@@ -138,8 +145,7 @@ class ValueObservableBuilder2<T1, T2> extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiValueObservableBuilder(
       streams: [stream1, stream2],
-      builder: (context, values) =>
-          builder(context, values[0] as T1, values[1] as T2),
+      builder: (context, values) => builder(context, values[0], values[1]),
     );
   }
 }
@@ -147,7 +153,8 @@ class ValueObservableBuilder2<T1, T2> extends StatelessWidget {
 typedef ValueStreamWidgetBuilder3<T1, T2, T3> = Widget Function(
     BuildContext context, T1 value1, T2 value2, T3 value3);
 
-/// A wrapper over [ValueObservableBuilder] that automatically provides [builder] with latest values from each stream.
+/// A wrapper over [ValueObservableBuilder] that automatically provides
+/// [builder] with latest values from each stream.
 class ValueObservableBuilder3<T1, T2, T3> extends StatelessWidget {
   const ValueObservableBuilder3({
     Key key,
@@ -167,7 +174,7 @@ class ValueObservableBuilder3<T1, T2, T3> extends StatelessWidget {
     return MultiValueObservableBuilder(
       streams: [stream1, stream2, stream3],
       builder: (context, values) =>
-          builder(context, values[0] as T1, values[1] as T2, values[2] as T3),
+          builder(context, values[0], values[1], values[2]),
     );
   }
 }

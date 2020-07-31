@@ -11,6 +11,21 @@ import 'package:rxdart/rxdart.dart';
 import 'package:rxdart/subjects.dart';
 
 class TableBloc implements Bloc {
+  TableBloc({
+    @required List<List<String>> data,
+    @required this.style,
+    @required this.textScaleFactor,
+    @required this.padding,
+    @required this.cellWidth,
+  }) {
+    _sizes.value = data.map((row) {
+      return row
+          .map((cellText) => _getTextHeight(
+              cellText, style, textScaleFactor, padding, cellWidth))
+          .toList();
+    }).toList();
+  }
+
   final TextStyle style;
   final double textScaleFactor;
   final EdgeInsetsGeometry padding;
@@ -18,11 +33,13 @@ class TableBloc implements Bloc {
 
   final _sizes = BehaviorSubject<List<List<double>>>();
 
-  final draggedRow = BehaviorSubject.seeded(-1);
-  final dragOffset = BehaviorSubject.seeded(Offset.zero);
-  final overlappedRows = BehaviorSubject<List<Overlap>>.seeded(const []);
-  final horizontalOffset = BehaviorSubject<double>.seeded(0);
-  final verticalOffset = BehaviorSubject<double>.seeded(0);
+  final BehaviorSubject<int> draggedRow = BehaviorSubject.seeded(-1);
+  final BehaviorSubject<Offset> dragOffset =
+      BehaviorSubject.seeded(Offset.zero);
+  final BehaviorSubject<List<Overlap>> overlappedRows =
+      BehaviorSubject.seeded(const []);
+  final BehaviorSubject<double> horizontalOffset = BehaviorSubject.seeded(0);
+  final BehaviorSubject<double> verticalOffset = BehaviorSubject.seeded(0);
 
   Stream<double> rowHeightStream(int row) =>
       _sizes.map((sizes) => sizes[row]).map(_getRowHeight).distinct();
@@ -40,23 +57,7 @@ class TableBloc implements Bloc {
   }
 
   int rowIndexByOffset(double offset) {
-    double tmpOffset = 0;
     throw UnimplementedError();
-  }
-
-  TableBloc({
-    @required List<List<String>> data,
-    @required this.style,
-    @required this.textScaleFactor,
-    @required this.padding,
-    @required this.cellWidth,
-  }) {
-    _sizes.value = data.map((row) {
-      return row
-          .map((cellText) => _getTextHeight(
-              cellText, style, textScaleFactor, padding, cellWidth))
-          .toList();
-    }).toList();
   }
 
   void notifyDragStarted(int row) {
@@ -102,11 +103,11 @@ double _getTextHeight(String text, TextStyle style, double textScaleFactor,
   final width = cellWidth - padding.horizontal;
   final constraints = BoxConstraints(
     maxWidth: width,
-    minHeight: 0.0,
-    minWidth: 0.0,
+    minHeight: 0,
+    minWidth: 0,
   );
 
-  RenderParagraph renderParagraph = RenderParagraph(
+  final renderParagraph = RenderParagraph(
     TextSpan(
       text: text,
       style: style,
@@ -115,6 +116,6 @@ double _getTextHeight(String text, TextStyle style, double textScaleFactor,
     textScaleFactor: textScaleFactor,
   );
   renderParagraph.layout(constraints);
-  double result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
+  final result = renderParagraph.getMinIntrinsicHeight(width).ceilToDouble();
   return result + padding.vertical;
 }

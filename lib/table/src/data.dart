@@ -2,6 +2,6 @@ import 'package:flutter/widgets.dart';
 
 const double cellWidth = 128;
 const double rowIndicatorWidth = 32;
-const padding = EdgeInsets.all(8.0);
+const padding = EdgeInsets.all(8);
 
-final scrollViewKey = GlobalKey(debugLabel: 'scrollViewKey');
+final GlobalKey scrollViewKey = GlobalKey(debugLabel: 'scrollViewKey');

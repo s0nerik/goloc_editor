@@ -5,12 +5,12 @@ import 'package:goloc_editor/table/src/data.dart';
 import 'package:goloc_editor/table/src/table_row.dart';
 
 class TSection extends StatelessWidget {
-  final Section section;
-
   const TSection({
     Key key,
     @required this.section,
   }) : super(key: key);
+
+  final Section section;
 
   @override
   Widget build(BuildContext context) {

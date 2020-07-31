@@ -4,14 +4,7 @@ import 'package:meta/meta.dart';
 
 @immutable
 class _OverlapTest {
-  final String name;
-  final double draggableY;
-  final double draggableHeight;
-  final double tableScrollAmount;
-  final List<double> rowHeights;
-  final List<int> expectedOverlapIndices;
-
-  _OverlapTest({
+  const _OverlapTest({
     @required this.name,
     @required this.draggableY,
     @required this.draggableHeight,
@@ -19,26 +12,33 @@ class _OverlapTest {
     @required this.rowHeights,
     @required this.expectedOverlapIndices,
   });
+
+  final String name;
+  final double draggableY;
+  final double draggableHeight;
+  final double tableScrollAmount;
+  final List<double> rowHeights;
+  final List<int> expectedOverlapIndices;
 }
 
 @immutable
 class _PinnedSectionTitleIndexTest {
-  final String name;
-  final double tableScrollAmount;
-  final List<double> rowHeights;
-  final List<int> sectionTitlePositions;
-  final int expectedResult;
-
-  _PinnedSectionTitleIndexTest({
+  const _PinnedSectionTitleIndexTest({
     @required this.name,
     @required this.tableScrollAmount,
     @required this.rowHeights,
     @required this.sectionTitlePositions,
     @required this.expectedResult,
   });
+
+  final String name;
+  final double tableScrollAmount;
+  final List<double> rowHeights;
+  final List<int> sectionTitlePositions;
+  final int expectedResult;
 }
 
-final _overlapTests = <_OverlapTest>[
+const _overlapTests = <_OverlapTest>[
   _OverlapTest(
     name: 'single 1',
     draggableY: 20,
@@ -73,7 +73,7 @@ final _overlapTests = <_OverlapTest>[
   ),
 ];
 
-final _pinnedSectionTitleIndexTests = [
+const _pinnedSectionTitleIndexTests = [
   _PinnedSectionTitleIndexTest(
     name: 'missing',
     tableScrollAmount: 0,

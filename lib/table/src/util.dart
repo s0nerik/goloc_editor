@@ -4,10 +4,10 @@ import 'package:meta/meta.dart';
 
 @immutable
 class Overlap {
+  const Overlap(this.index, this.amount);
+
   final int index;
   final double amount;
-
-  Overlap(this.index, this.amount);
 
   @override
   String toString() => '($index, $amount)';
@@ -24,9 +24,9 @@ List<Overlap> overlap({
 
   final result = <Overlap>[];
 
-  int i = 0;
-  double overlapAmount = 0;
-  double offset = 0;
+  var i = 0;
+  var overlapAmount = 0.0;
+  var offset = 0.0;
   while (i < rowHeights.length) {
     final rowTop = offset;
     final rowBottom = offset + rowHeights[i];
@@ -57,9 +57,9 @@ int pinnedSectionTitleIndex({
     return -1;
   }
 
-  double scrollOffset = 0;
-  int pinnedIndex = -1;
-  for (int i = 0;
+  var scrollOffset = 0.0;
+  var pinnedIndex = -1;
+  for (var i = 0;
       i < rowHeights.length && scrollOffset <= tableScrollAmount;
       i++) {
     if (sectionTitlePositions.contains(i)) {

@@ -4,14 +4,14 @@ import 'package:goloc_editor/table/src/data.dart';
 import 'package:goloc_editor/table/src/table_bloc.dart';
 
 class TCell extends StatefulWidget {
-  final int row;
-  final int col;
-
   const TCell({
     Key key,
     @required this.row,
     @required this.col,
   }) : super(key: key);
+
+  final int row;
+  final int col;
 
   @override
   _TCellState createState() => _TCellState();

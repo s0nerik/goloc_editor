@@ -2,12 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:goloc_editor/table/src/data.dart';
 
 class DragHandle extends StatelessWidget {
-  final int row;
-
   const DragHandle({
     Key key,
     @required this.row,
   }) : super(key: key);
+
+  final int row;
 
   @override
   Widget build(BuildContext context) {

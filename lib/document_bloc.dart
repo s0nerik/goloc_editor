@@ -11,6 +11,10 @@ import 'package:rxdart/rxdart.dart';
 
 @immutable
 class Document {
+  Document(this._data)
+      : _sectionNameColumnIndex = _getSectionNameColumnIndex(_data),
+        _sections = _getSections(_data);
+
   final List<List<String>> _data;
   final List<Section> _sections;
   final int _sectionNameColumnIndex;
@@ -20,7 +24,7 @@ class Document {
   int get rows => _data.length;
   int get cols {
     if (_data.isEmpty) return 0;
-    int cols = _data[0].length;
+    final cols = _data[0].length;
     if (hasSections) {
       return cols - 1; // Minus section title column
     } else {
@@ -30,10 +34,6 @@ class Document {
 
   bool get hasSections => _sectionNameColumnIndex >= 0;
   List<Section> get sections => UnmodifiableListView(_sections);
-
-  Document(this._data)
-      : _sectionNameColumnIndex = _getSectionNameColumnIndex(_data),
-        _sections = _getSections(_data);
 
   static int _getSectionNameColumnIndex(List<List<String>> data) {
     if (data.isEmpty) {
@@ -54,7 +54,7 @@ class Document {
     int lastSectionLength;
     String lastSectionTitle;
 
-    int rowOffset = 0;
+    var rowOffset = 0;
     data.skip(1).forEach((row) {
       rowOffset++;
       final sectionTitle = row[sectionNameColumnIndex];
@@ -106,18 +106,22 @@ class Document {
 
 @immutable
 class Section {
+  const Section(this.row, this.length, this.title);
+
   final int row;
   final int length;
   final String title;
-
-  const Section(this.row, this.length, this.title);
 }
 
 class DocumentBloc implements Bloc {
+  DocumentBloc(this._source) {
+    _init();
+  }
+
   final String _source;
 
   final BehaviorSubject<Document> _document =
-      BehaviorSubject.seeded(Document([]));
+      BehaviorSubject.seeded(Document(const []));
   ValueStream<Document> get document => _document;
 
   int get cols => document.value.cols;
@@ -130,10 +134,6 @@ class DocumentBloc implements Bloc {
       _document.value.getCell(row, col);
 
   String getCurrentHeaderValue(int row) => _document.value.getHeader(row);
-
-  DocumentBloc(this._source) {
-    _init();
-  }
 
   void setHeader(int row, String value) {
     final document = _document.value;
@@ -152,8 +152,7 @@ class DocumentBloc implements Bloc {
     final csvString = await rootBundle.loadString('assets/localizations.csv');
 //    final csvString = await rootBundle.loadString('assets/_localizations.csv');
     final csvList = const CsvToListConverter().convert(csvString);
-    final mappedList =
-        csvList.map((row) => row.map((col) => col as String).toList()).toList();
+    final mappedList = csvList.map((row) => row.cast<String>()).toList();
     _document.value = Document(mappedList);
   }
 

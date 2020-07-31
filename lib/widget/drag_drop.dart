@@ -31,12 +31,12 @@ class _DragAvatarBuilder extends ValueNotifier<WidgetBuilder> {
 }
 
 class DragSurface extends StatelessWidget {
-  final Widget child;
-
   const DragSurface({
     Key key,
     @required this.child,
   }) : super(key: key);
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -76,23 +76,23 @@ class _DragSurfaceOverlay extends StatelessWidget {
 }
 
 class DragHandle extends StatelessWidget {
-  final Widget child;
-  final WidgetBuilder dragAvatarBuilder;
-
   const DragHandle({
     Key key,
     @required this.dragAvatarBuilder,
     @required this.child,
   }) : super(key: key);
 
+  final Widget child;
+  final WidgetBuilder dragAvatarBuilder;
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onVerticalDragDown: (details) {
-        final box = context.findRenderObject() as RenderBox;
-        final overlayBox =
-            Overlay.of(context).context.findRenderObject() as RenderBox;
+        final RenderBox box = context.findRenderObject();
+        final RenderBox overlayBox =
+            Overlay.of(context).context.findRenderObject();
         final globalOffset = box.localToGlobal(Offset.zero);
         final overlayOffset = overlayBox.globalToLocal(globalOffset);
         DragDetails.of(context)._update(overlayOffset.dy, box.size.height);

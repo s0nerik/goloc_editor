@@ -4,10 +4,12 @@ import 'package:goloc_editor/widget/drag_drop.dart';
 import 'package:provider/provider.dart';
 
 void run() {
-  runApp(App());
+  runApp(const App());
 }
 
 class App extends StatelessWidget {
+  const App({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,7 +19,7 @@ class App extends StatelessWidget {
         body: SafeArea(
           child: ChangeNotifierProvider(
             create: (_) => _Overlaps(),
-            child: DragSurface(
+            child: const DragSurface(
               child: _Content(),
             ),
           ),
@@ -62,7 +64,7 @@ class __ContentState extends State<_Content> {
   }
 
   void _onDragChanged() {
-    print('TOP: ${_dragDetails.topOffset}');
+    debugPrint('TOP: ${_dragDetails.topOffset}');
     _Overlaps.of(context, listen: false).value = overlap(
       draggableY: _dragDetails.topOffset,
       draggableHeight: _dragDetails.draggableHeight,
@@ -95,14 +97,14 @@ const _heights = <double>[
 ];
 
 class _Item extends StatelessWidget {
-  final int i;
-  final bool isDragged;
-
   const _Item({
     Key key,
     @required this.i,
     this.isDragged = false,
   }) : super(key: key);
+
+  final int i;
+  final bool isDragged;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +121,7 @@ class _Item extends StatelessWidget {
       color = Colors.orange;
     }
 
-    double height = _heights[i % _heights.length];
+    final height = _heights[i % _heights.length];
 // TODO: do something about it
 //    if (isOverlapped && !isDragged) {
 //      final overlapInfo = overlaps[overlapIndex];
@@ -130,7 +132,7 @@ class _Item extends StatelessWidget {
 
     return Container(
       height: height,
-      padding: EdgeInsets.symmetric(vertical: 1),
+      padding: const EdgeInsets.symmetric(vertical: 1),
       child: Container(
         color: color,
         child: Row(
@@ -140,7 +142,7 @@ class _Item extends StatelessWidget {
               child: Container(
                 width: 120,
                 alignment: Alignment.center,
-                child: Text('X'),
+                child: const Text('X'),
               ),
             ),
             Expanded(child: Text('$i')),
