@@ -42,8 +42,8 @@ class DragSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(builder: (_) => DragDetails()),
-        ChangeNotifierProvider(builder: (_) => _DragAvatarBuilder()),
+        ChangeNotifierProvider(create: (_) => DragDetails()),
+        ChangeNotifierProvider(create: (_) => _DragAvatarBuilder()),
       ],
       child: Overlay(
         initialEntries: [
@@ -101,7 +101,9 @@ class DragHandle extends StatelessWidget {
       onVerticalDragUpdate: (details) {
         DragDetails.of(context)._addTopOffset(details.primaryDelta);
       },
-      onVerticalDragEnd: (_) => _resetDrag(context),
+      onVerticalDragEnd: (_) {
+        _resetDrag(context);
+      },
       onVerticalDragCancel: () => _resetDrag(context),
       child: child,
     );

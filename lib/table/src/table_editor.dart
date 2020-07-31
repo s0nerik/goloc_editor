@@ -21,13 +21,13 @@ class TableEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        BlocProvider(builder: (_) => DocumentBloc(source)),
+        BlocProvider(create: (_) => DocumentBloc(source)),
       ],
       child: Consumer<DocumentBloc>(
         builder: (context, bloc, _) => SimpleFutureBuilder<Document>(
           future: bloc.document.firstWhere((d) => d.rows > 0),
           builder: (document) => BlocProvider(
-            builder: (context) => TableBloc(
+            create: (context) => TableBloc(
               data: document.data,
               cellWidth: cellWidth,
               style: inherited<DefaultTextStyle>(context, listen: false).style,

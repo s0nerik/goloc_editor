@@ -81,7 +81,7 @@ class ValueObservableBuilder<T> extends StatelessWidget {
     @required this.builder,
   }) : super(key: key);
 
-  final ValueObservable<T> stream;
+  final ValueStream<T> stream;
   final ValueStreamWidgetBuilder<T> builder;
 
   @override
@@ -105,13 +105,13 @@ class MultiValueObservableBuilder extends StatelessWidget {
     @required this.builder,
   }) : super(key: key);
 
-  final List<ValueObservable> streams;
+  final List<ValueStream> streams;
   final MultiValueStreamWidgetBuilder builder;
 
   @override
   Widget build(BuildContext context) {
     return ValueStreamBuilder<List<Object>>(
-      stream: Observable.combineLatestList<Object>(streams),
+      stream: Rx.combineLatestList<Object>(streams),
       initialValue: streams.map<Object>((s) => s.value).toList(growable: false),
       builder: builder,
     );
@@ -130,8 +130,8 @@ class ValueObservableBuilder2<T1, T2> extends StatelessWidget {
     @required this.builder,
   }) : super(key: key);
 
-  final ValueObservable<T1> stream1;
-  final ValueObservable<T2> stream2;
+  final ValueStream<T1> stream1;
+  final ValueStream<T2> stream2;
   final ValueStreamWidgetBuilder2<T1, T2> builder;
 
   @override
@@ -157,9 +157,9 @@ class ValueObservableBuilder3<T1, T2, T3> extends StatelessWidget {
     @required this.builder,
   }) : super(key: key);
 
-  final ValueObservable<T1> stream1;
-  final ValueObservable<T2> stream2;
-  final ValueObservable<T3> stream3;
+  final ValueStream<T1> stream1;
+  final ValueStream<T2> stream2;
+  final ValueStream<T3> stream3;
   final ValueStreamWidgetBuilder3<T1, T2, T3> builder;
 
   @override

@@ -16,7 +16,7 @@ class App extends StatelessWidget {
       home: Scaffold(
         body: SafeArea(
           child: ChangeNotifierProvider(
-            builder: (_) => _Overlaps(),
+            create: (_) => _Overlaps(),
             child: DragSurface(
               child: _Content(),
             ),

@@ -9,11 +9,11 @@ abstract class Bloc {
 class BlocProvider<T extends Bloc> extends Provider<T> {
   BlocProvider({
     Key key,
-    @required ValueBuilder<T> builder,
+    @required Create<T> create,
     Widget child,
   }) : super(
           key: key,
-          builder: builder,
+          create: create,
           dispose: (_, bloc) => bloc.dispose(),
           child: child,
         );
