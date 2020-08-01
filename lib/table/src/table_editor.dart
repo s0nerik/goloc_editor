@@ -99,7 +99,6 @@ class _EditorContentState extends State<_EditorContent> {
                   maintainState: true,
                   opaque: true,
                   builder: (context) => CustomScrollView(
-                    key: scrollViewKey,
                     controller: _ctrl,
                     slivers: widget.document.sections
                         .map((s) => TSection(section: s))

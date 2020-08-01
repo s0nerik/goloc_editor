@@ -103,8 +103,6 @@ double _getTextHeight(String text, TextStyle style, double textScaleFactor,
   final width = cellWidth - padding.horizontal;
   final constraints = BoxConstraints(
     maxWidth: width,
-    minHeight: 0,
-    minWidth: 0,
   );
 
   final renderParagraph = RenderParagraph(
