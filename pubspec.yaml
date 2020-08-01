@@ -2,7 +2,7 @@ name: goloc_editor
 description: goloc editor
 
 publish_to: 'none'
-version: 1.0.3+21
+version: 0.1.0+1
 
 environment:
   sdk: ">=2.8.0 <3.0.0"

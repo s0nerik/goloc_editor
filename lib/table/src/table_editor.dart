@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:goloc_editor/document_bloc.dart';
+import 'package:goloc_editor/model/document.dart';
 import 'package:goloc_editor/table/src/data.dart';
 import 'package:goloc_editor/table/src/table_bloc.dart';
 import 'package:goloc_editor/table/src/table_row.dart';

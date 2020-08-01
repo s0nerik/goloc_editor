@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:goloc_editor/document_bloc.dart';
+import 'package:goloc_editor/model/section.dart';
 import 'package:goloc_editor/table/src/data.dart';
 import 'package:goloc_editor/table/src/table_row.dart';
 

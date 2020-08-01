@@ -7,8 +7,6 @@ import 'package:goloc_editor/table/src/table_bloc.dart';
 import 'package:goloc_editor/table/src/table_cell.dart';
 import 'package:goloc_editor/table/src/util.dart';
 import 'package:goloc_editor/widget/async.dart';
-import 'package:goloc_editor/widget/drag_target.dart' as drag;
-import 'package:vsync_provider/vsync_provider.dart';
 
 class TRow extends StatefulWidget {
   const TRow({
@@ -82,21 +80,22 @@ class _TRowState extends State<TRow> with TickerProviderStateMixin {
 
     final draggable = _buildDraggable(context, key, content, height);
 
-    return VsyncProvider(
-      isSingleTicker: false,
-      child: drag.DragTarget<Key>(
-        key: key,
-        onWillAccept: (candidateKey) {
-          debugPrint('onWillAccept[${key.value}]: $candidateKey');
-          return key != candidateKey;
-        },
-        onAccept: (row) {
-          debugPrint('onAccept[${key.value}]: $row');
-        },
-        builder: (context, candidateData, _) =>
-            _buildDragTarget(context, candidateData, draggable, content, key),
-      ),
-    );
+    return const SizedBox();
+//    return VsyncProvider(
+//      isSingleTicker: false,
+//      child: drag.DragTarget<Key>(
+//        key: key,
+//        onWillAccept: (candidateKey) {
+//          debugPrint('onWillAccept[${key.value}]: $candidateKey');
+//          return key != candidateKey;
+//        },
+//        onAccept: (row) {
+//          debugPrint('onAccept[${key.value}]: $row');
+//        },
+//        builder: (context, candidateData, _) =>
+//            _buildDragTarget(context, candidateData, draggable, content, key),
+//      ),
+//    );
   }
 }
 
@@ -128,27 +127,28 @@ Widget _buildContent(BuildContext context, ValueKey<int> key, double height,
 
 Widget _buildDraggable(
     BuildContext context, ValueKey<int> key, Widget content, double height) {
-  return drag.LongPressDraggable<Key>(
-    data: key,
-    axis: Axis.vertical,
-    onDragStarted: () => TableBloc.of(context).notifyDragStarted(key.value),
-    onDragPositionChanged: (details) {
-      details.offset.translate(0, -MediaQuery.of(context).viewInsets.top);
-      TableBloc.of(context).notifyDragOffsetChanged(details.offset);
-    },
-    onDragEnd: (_) => TableBloc.of(context).notifyDragEnded(),
-    maxSimultaneousDrags: 1,
-    feedback: Material(
-      elevation: 4,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width,
-        ),
-        child: content,
-      ),
-    ),
-    child: content,
-  );
+  return Container();
+//  return drag.LongPressDraggable<Key>(
+//    data: key,
+//    axis: Axis.vertical,
+//    onDragStarted: () => TableBloc.of(context).notifyDragStarted(key.value),
+//    onDragPositionChanged: (details) {
+//      details.offset.translate(0, -MediaQuery.of(context).viewInsets.top);
+//      TableBloc.of(context).notifyDragOffsetChanged(details.offset);
+//    },
+//    onDragEnd: (_) => TableBloc.of(context).notifyDragEnded(),
+//    maxSimultaneousDrags: 1,
+//    feedback: Material(
+//      elevation: 4,
+//      child: ConstrainedBox(
+//        constraints: BoxConstraints(
+//          maxWidth: MediaQuery.of(context).size.width,
+//        ),
+//        child: content,
+//      ),
+//    ),
+//    child: content,
+//  );
 }
 
 Widget _buildDragTarget(BuildContext context, List<Key> candidateData,
